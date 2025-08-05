@@ -23,6 +23,8 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
+import { signIn } from "@/actions/auth";
+import { useState } from "react";
 
 const formSchema = z.object({
   email: z.email(),
@@ -33,6 +35,8 @@ export function SignInForm({
   className,
   ...props
 }: React.ComponentProps<"div">) {
+  const [isLoading, setIsLoading] = useState(false);
+
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -41,10 +45,10 @@ export function SignInForm({
     },
   });
 
-  // 2. Define a submit handler.
-  function onSubmit(values: z.infer<typeof formSchema>) {
-    // Do something with the form values.
-    // ✅ This will be type-safe and validated.
+  async function onSubmit(values: z.infer<typeof formSchema>) {
+    setIsLoading(true);
+    await signIn(values);
+    setIsLoading(false);
     console.log(values);
   }
   return (
@@ -117,7 +121,7 @@ export function SignInForm({
                       )}
                     />
                   </div>
-                  <Button type="submit" className="w-full">
+                  <Button type="submit" className="w-full" disabled={isLoading}>
                     Login
                   </Button>
                 </div>

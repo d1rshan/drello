@@ -1,19 +1,21 @@
 "use server";
 
 import { auth } from "@/lib/auth";
+import { redirect } from "next/navigation";
 
 interface signInProps {
   email: string;
   password: string;
 }
 
-const signIn = async ({ email, password }: signInProps) => {
+export const signIn = async ({ email, password }: signInProps) => {
   await auth.api.signInEmail({
     body: {
       email,
       password,
     },
   });
+  redirect("/");
 };
 
 interface signUpProps {
@@ -23,7 +25,7 @@ interface signUpProps {
   image?: string;
 }
 
-const signUp = async ({ email, name, password, image }: signUpProps) => {
+export const signUp = async ({ email, name, password, image }: signUpProps) => {
   await auth.api.signUpEmail({
     body: {
       email,
@@ -32,4 +34,6 @@ const signUp = async ({ email, name, password, image }: signUpProps) => {
       image,
     },
   });
+  console.log("SUCCESS");
+  redirect("/");
 };

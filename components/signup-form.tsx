@@ -14,7 +14,6 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import {
   Form,
   FormControl,
@@ -23,6 +22,9 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
+
+import { signUp } from "@/actions/auth";
+import { useState } from "react";
 
 const formSchema = z.object({
   email: z.email(),
@@ -33,6 +35,8 @@ export function SignUpForm({
   className,
   ...props
 }: React.ComponentProps<"div">) {
+  const [isLoading, setIsLoading] = useState(false);
+
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -41,11 +45,11 @@ export function SignUpForm({
     },
   });
 
-  // 2. Define a submit handler.
-  function onSubmit(values: z.infer<typeof formSchema>) {
-    // Do something with the form values.
-    // ✅ This will be type-safe and validated.
-    console.log(values);
+  async function onSubmit(values: z.infer<typeof formSchema>) {
+    setIsLoading(true);
+    const { email, password } = values;
+    await signUp({ email, password, name: "Darshan" });
+    setIsLoading(false);
   }
   return (
     <div className={cn("flex flex-col gap-6", className)} {...props}>
@@ -76,13 +80,6 @@ export function SignUpForm({
                 </div>
                 <div className="grid gap-6">
                   <div className="grid gap-3">
-                    {/* <Label htmlFor="email">Email</Label>
-                    <Input
-                      id="email"
-                      type="email"
-                      placeholder="you@example.com"
-                      required
-                    /> */}
                     <FormField
                       control={form.control}
                       name="email"
@@ -116,7 +113,7 @@ export function SignUpForm({
                       )}
                     />
                   </div>
-                  <Button type="submit" className="w-full">
+                  <Button type="submit" className="w-full" disabled={isLoading}>
                     Create Account
                   </Button>
                 </div>
