@@ -5,7 +5,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { useState } from "react";
 import { Loader2 } from "lucide-react";
-import { APIError } from "better-auth/api";
+import { APIError, router } from "better-auth/api";
 import { toast } from "sonner";
 
 import { cn } from "@/lib/utils";
@@ -27,6 +27,7 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { signUp } from "@/actions/auth";
+import { useRouter } from "next/navigation";
 
 const formSchema = z.object({
   name: z.string().min(1),
@@ -39,6 +40,7 @@ export function SignUpForm({
   className,
   ...props
 }: React.ComponentProps<"div">) {
+  const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
 
   const form = useForm<z.infer<typeof formSchema>>({
@@ -52,30 +54,21 @@ export function SignUpForm({
   });
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
-    try {
-      if (values.password !== values.confirmPassword) {
-        form.setError("password", { type: "manual" });
-        form.setError("confirmPassword", { type: "manual" });
-        toast.error("Passwords do not match!");
-        return;
-      }
-      setIsLoading(true);
-      await signUp(values);
-    } catch (error: any) {
-      form.reset();
-      if (error instanceof APIError) {
-        switch (error.status) {
-          case "UNPROCESSABLE_ENTITY":
-            toast.error("User already exists!");
-          case "BAD_REQUEST":
-            toast.error("Invalid email!");
-          default:
-            toast.error("Something went wrong!");
-        }
-      }
-    } finally {
-      setIsLoading(false);
+    if (values.password !== values.confirmPassword) {
+      form.setError("password", { type: "manual" });
+      form.setError("confirmPassword", { type: "manual" });
+      toast.error("Passwords do not match!");
+      return;
     }
+    setIsLoading(true);
+    const res = await signUp(values);
+    if (res.success) {
+      router.push("/");
+    } else {
+      form.reset();
+      toast.error(res.error);
+    }
+    setIsLoading(false);
   }
 
   return (

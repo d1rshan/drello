@@ -6,7 +6,6 @@ import { useForm } from "react-hook-form";
 import { useState } from "react";
 import { Loader2 } from "lucide-react";
 import { toast } from "sonner";
-import { APIError } from "better-auth/api";
 
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -27,6 +26,7 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { signIn } from "@/actions/auth";
+import { useRouter } from "next/navigation";
 
 const formSchema = z.object({
   email: z.email(),
@@ -37,6 +37,7 @@ export function SignInForm({
   className,
   ...props
 }: React.ComponentProps<"div">) {
+  const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
 
   const form = useForm<z.infer<typeof formSchema>>({
@@ -48,25 +49,17 @@ export function SignInForm({
   });
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
-    try {
-      setIsLoading(true);
-      await signIn(values);
-    } catch (error) {
+    setIsLoading(true);
+    const res = await signIn(values);
+    if (res.success) {
+      router.push("/");
+    } else {
       form.reset();
-      if (error instanceof APIError) {
-        switch (error.status) {
-          case "UNAUTHORIZED":
-            toast.error("User not found!");
-          case "BAD_REQUEST":
-            toast.error("Invalid email!");
-          default:
-            toast.error("Something went wrong!");
-        }
-      }
-    } finally {
-      setIsLoading(false);
+      toast.error(res.error);
     }
+    setIsLoading(false);
   }
+
   return (
     <div className={cn("flex flex-col gap-6", className)} {...props}>
       <Card>
