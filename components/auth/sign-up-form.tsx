@@ -26,6 +26,7 @@ import {
 } from "@/components/ui/form";
 
 import { signUp } from "@/actions/auth";
+import { toast } from "sonner";
 
 const formSchema = z.object({
   name: z.string().min(1),
@@ -52,17 +53,22 @@ export function SignUpForm({
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
     try {
-      setIsLoading(true);
-
-      if (values.password != values.confirmPassword) {
+      if (values.password !== values.confirmPassword) {
+        form.setError("password", { type: "manual" });
+        form.setError("confirmPassword", { type: "manual" });
+        toast.error("Passwords do not match!");
+        return;
       }
-
+      setIsLoading(true);
       await signUp(values);
-    } catch (error) {
+    } catch (error: any) {
+      toast.error(error.message);
+      console.log(error);
     } finally {
       setIsLoading(false);
     }
   }
+
   return (
     <div className={cn("flex flex-col gap-6", className)} {...props}>
       <Card>
