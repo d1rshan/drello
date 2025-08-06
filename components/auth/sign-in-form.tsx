@@ -6,6 +6,7 @@ import { useForm } from "react-hook-form";
 import { useState } from "react";
 import { Loader2 } from "lucide-react";
 import { toast } from "sonner";
+import { APIError } from "better-auth/api";
 
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -50,10 +51,18 @@ export function SignInForm({
     try {
       setIsLoading(true);
       await signIn(values);
-    } catch (error: any) {
+    } catch (error) {
       form.reset();
-      toast.error(`${error.message}!`);
-      console.log(error);
+      if (error instanceof APIError) {
+        switch (error.status) {
+          case "UNAUTHORIZED":
+            toast.error("User not found!");
+          case "BAD_REQUEST":
+            toast.error("Invalid email!");
+          default:
+            toast.error("Something went wrong!");
+        }
+      }
     } finally {
       setIsLoading(false);
     }

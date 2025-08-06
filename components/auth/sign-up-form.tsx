@@ -5,6 +5,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { useState } from "react";
 import { Loader2 } from "lucide-react";
+import { APIError } from "better-auth/api";
 import { toast } from "sonner";
 
 import { cn } from "@/lib/utils";
@@ -25,7 +26,6 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
-
 import { signUp } from "@/actions/auth";
 
 const formSchema = z.object({
@@ -63,7 +63,16 @@ export function SignUpForm({
       await signUp(values);
     } catch (error: any) {
       form.reset();
-      toast.error(`${error.message}!`);
+      if (error instanceof APIError) {
+        switch (error.status) {
+          case "UNPROCESSABLE_ENTITY":
+            toast.error("User already exists!");
+          case "BAD_REQUEST":
+            toast.error("Invalid email!");
+          default:
+            toast.error("Something went wrong!");
+        }
+      }
     } finally {
       setIsLoading(false);
     }
