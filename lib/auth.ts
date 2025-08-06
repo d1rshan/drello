@@ -32,11 +32,10 @@ export const auth = betterAuth({
   },
 
   plugins: [nextCookies()], // Now, when you call functions that set cookies, they will be automatically set. (like sign in, sign up)
-  // TODO:
-  //   socialProviders: {
-  //     github: {
-  //       clientId: process.env.GITHUB_CLIENT_ID as string,
-  //       clientSecret: process.env.GITHUB_CLIENT_SECRET as string,
-  //     },
-  //   },
+  socialProviders: {
+    google: {
+      clientId: process.env.GOOGLE_CLIENT_ID as string,
+      clientSecret: process.env.GOOGLE_CLIENT_SECRET as string,
+    },
+  },
 });
