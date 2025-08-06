@@ -5,6 +5,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { useState } from "react";
 import { Loader2 } from "lucide-react";
+import { toast } from "sonner";
 
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -19,7 +20,6 @@ import { Input } from "@/components/ui/input";
 import {
   Form,
   FormControl,
-  FormDescription,
   FormField,
   FormItem,
   FormLabel,
@@ -47,10 +47,16 @@ export function SignInForm({
   });
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
-    setIsLoading(true);
-    await signIn(values);
-    setIsLoading(false);
-    console.log(values);
+    try {
+      setIsLoading(true);
+      await signIn(values);
+    } catch (error: any) {
+      form.reset();
+      toast.error(`${error.message}!`);
+      console.log(error);
+    } finally {
+      setIsLoading(false);
+    }
   }
   return (
     <div className={cn("flex flex-col gap-6", className)} {...props}>

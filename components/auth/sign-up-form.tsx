@@ -5,6 +5,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { useState } from "react";
 import { Loader2 } from "lucide-react";
+import { toast } from "sonner";
 
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -26,7 +27,6 @@ import {
 } from "@/components/ui/form";
 
 import { signUp } from "@/actions/auth";
-import { toast } from "sonner";
 
 const formSchema = z.object({
   name: z.string().min(1),
@@ -62,8 +62,8 @@ export function SignUpForm({
       setIsLoading(true);
       await signUp(values);
     } catch (error: any) {
-      toast.error(error.message);
-      console.log(error);
+      form.reset();
+      toast.error(`${error.message}!`);
     } finally {
       setIsLoading(false);
     }

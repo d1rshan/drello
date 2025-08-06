@@ -34,6 +34,5 @@ export const signUp = async ({ email, name, password, image }: signUpProps) => {
       image,
     },
   });
-  console.log("SUCCESS");
   redirect("/");
 };
