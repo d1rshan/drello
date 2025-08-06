@@ -15,6 +15,10 @@ export const auth = betterAuth({
   },
   account: {
     modelName: "accountsTable",
+    accountLinking: {
+      // this will make sure if user signed up with email and tries to continue with google then it is the same user
+      enabled: true,
+    },
   },
   verification: {
     modelName: "verificationsTable",
@@ -26,6 +30,7 @@ export const auth = betterAuth({
   emailAndPassword: {
     enabled: true,
   },
+
   plugins: [nextCookies()], // Now, when you call functions that set cookies, they will be automatically set. (like sign in, sign up)
   // TODO:
   //   socialProviders: {
