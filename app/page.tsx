@@ -11,5 +11,5 @@ export default async function HomePage() {
   if (!session) {
     return redirect("/sign-in");
   }
-  return <div>THIS IS A PROTECTED ROUTE!!</div>;
+  return <div>Hello {session.user.name}!</div>;
 }

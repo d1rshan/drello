@@ -7,6 +7,18 @@ import * as schema from "@/lib/db/schema"; // path must match your schema file
 import { nextCookies } from "better-auth/next-js";
 
 export const auth = betterAuth({
+  user: {
+    modelName: "usersTable",
+  },
+  session: {
+    modelName: "sessionsTable",
+  },
+  account: {
+    modelName: "accountsTable",
+  },
+  verification: {
+    modelName: "verificationsTable",
+  },
   database: drizzleAdapter(db, {
     schema,
     provider: "pg",
