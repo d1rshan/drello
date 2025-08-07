@@ -1,16 +1,24 @@
-import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 
 import { BoardCards } from "@/components/board-cards";
-import { auth } from "@/lib/auth/auth";
+import { currentUser } from "@/lib/auth/current-user";
+import { db } from "@/lib/db";
+import { boardMembersTable, boardsTable } from "@/lib/db/schema";
+import { eq } from "drizzle-orm";
 
 export default async function DashboardPage() {
   // extra check other than middleware as it only checks for session cookie locally
-  const session = await auth.api.getSession({
-    headers: await headers(),
-  });
-  if (!session) {
+  const user = await currentUser();
+
+  if (!user) {
     return redirect("/sign-in");
   }
-  return <BoardCards />;
+
+  const userBoards = await db
+    .select()
+    .from(boardsTable)
+    .innerJoin(boardMembersTable, eq(boardsTable.id, boardMembersTable.boardId))
+    .where(eq(boardMembersTable.userId, user.id));
+
+  return <BoardCards userBoards={userBoards} />;
 }

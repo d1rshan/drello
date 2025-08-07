@@ -4,6 +4,7 @@ import axios from "axios";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
+import { useRouter } from "next/navigation";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -24,12 +25,14 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
+import { toast } from "sonner";
 
 const formSchema = z.object({
   title: z.string().min(1, { error: "Board Title is Required" }).max(30),
 });
 
 export function CreateBoardModal() {
+  const router = useRouter();
   const { isOpen, onClose, type } = useModal();
 
   const isModalOpen = isOpen && type === "createBoard";
@@ -44,10 +47,15 @@ export function CreateBoardModal() {
   const { isSubmitting } = form.formState;
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
-    const res = await axios.post("/api/boards", values);
-    console.log(res.data);
-    form.reset();
-    onClose();
+    try {
+      const res = await axios.post("/api/boards", values);
+      router.refresh();
+      toast.success("Board Created!");
+      form.reset();
+      onClose();
+    } catch (error) {
+      console.log(error);
+    }
   }
 
   return (
