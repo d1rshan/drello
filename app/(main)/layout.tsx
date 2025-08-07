@@ -27,7 +27,6 @@ export default async function MainLayout({
   await queryClient.prefetchQuery({
     queryKey: ["boards"],
     queryFn: async () => {
-      console.log("HELLO");
       const boards = await db
         .select({
           id: boardsTable.id,
@@ -40,7 +39,6 @@ export default async function MainLayout({
           eq(boardsTable.id, boardMembersTable.boardId)
         )
         .where(eq(boardMembersTable.userId, user.id));
-      console.log(boards);
       return boards;
     },
   });

@@ -27,10 +27,14 @@ import {
 import { useQuery } from "@tanstack/react-query";
 import { getBoards } from "@/lib/queries/boards";
 import { Board } from "@/types";
+import { usePathname } from "next/navigation";
+import { cn } from "@/lib/utils";
 
 export function NavBoards() {
   const { isMobile } = useSidebar();
+  const pathname = usePathname();
 
+  console.log("HELLO");
   const { data: boards } = useQuery({
     queryKey: ["boards"],
     queryFn: getBoards,
@@ -40,46 +44,51 @@ export function NavBoards() {
     <SidebarGroup className="group-data-[collapsible=icon]:hidden">
       <SidebarGroupLabel>Boards</SidebarGroupLabel>
       <SidebarMenu>
-        {boards.slice(0, 5).map((board: Board) => (
-          <SidebarMenuItem key={board.id}>
-            <SidebarMenuButton asChild>
-              <div>
-                <IconLayout />
-                <span>{board.title}</span>
-              </div>
-            </SidebarMenuButton>
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <SidebarMenuAction
-                  showOnHover
-                  className="data-[state=open]:bg-accent rounded-sm"
+        {boards.slice(0, 5).map((board: Board) => {
+          const isActive = pathname === `/boards/${board.id}`;
+          return (
+            <SidebarMenuItem key={board.id}>
+              <SidebarMenuButton asChild>
+                <div>
+                  <IconLayout />
+                  <span className={cn(isActive && "text-green-300")}>
+                    {board.title}
+                  </span>
+                </div>
+              </SidebarMenuButton>
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <SidebarMenuAction
+                    showOnHover
+                    className="data-[state=open]:bg-accent rounded-sm"
+                  >
+                    <IconDots />
+                    <span className="sr-only">More</span>
+                  </SidebarMenuAction>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent
+                  className="w-24 rounded-lg"
+                  side={isMobile ? "bottom" : "right"}
+                  align={isMobile ? "end" : "start"}
                 >
-                  <IconDots />
-                  <span className="sr-only">More</span>
-                </SidebarMenuAction>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent
-                className="w-24 rounded-lg"
-                side={isMobile ? "bottom" : "right"}
-                align={isMobile ? "end" : "start"}
-              >
-                <DropdownMenuItem>
-                  <IconFolder />
-                  <span>Open</span>
-                </DropdownMenuItem>
-                <DropdownMenuItem>
-                  <IconShare3 />
-                  <span>Share</span>
-                </DropdownMenuItem>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem variant="destructive">
-                  <IconTrash />
-                  <span>Delete</span>
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
-          </SidebarMenuItem>
-        ))}
+                  <DropdownMenuItem>
+                    <IconFolder />
+                    <span>Open</span>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem>
+                    <IconShare3 />
+                    <span>Share</span>
+                  </DropdownMenuItem>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem variant="destructive">
+                    <IconTrash />
+                    <span>Delete</span>
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            </SidebarMenuItem>
+          );
+        })}
         <SidebarMenuItem>
           <SidebarMenuButton className="text-sidebar-foreground/70">
             <IconDots className="text-sidebar-foreground/70" />
