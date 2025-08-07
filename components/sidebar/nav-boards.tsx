@@ -23,6 +23,7 @@ import {
 import { deleteBoard, getBoards } from "@/lib/queries/boards";
 import { Board } from "@/types";
 import { cn } from "@/lib/utils";
+import Link from "next/link";
 
 export function NavBoards() {
   const { isMobile } = useSidebar();
@@ -50,16 +51,30 @@ export function NavBoards() {
           const isActive = pathname === `/boards/${board.id}`;
           return (
             <SidebarMenuItem key={board.id}>
-              <SidebarMenuButton asChild>
-                <div>
-                  <IconLayout />
-                  <span className={cn(isActive && "text-green-300")}>
-                    {board.title}
-                  </span>
-                </div>
+              <SidebarMenuButton
+                asChild
+                className={cn(
+                  isActive &&
+                    "bg-primary text-primary-foreground hover:bg-primary/90 hover:text-primary-foreground active:bg-primary/90 active:text-primary-foreground min-w-8 duration-200 ease-linear"
+                )}
+              >
+                <Link href={`/boards/${board.id}`}>
+                  <div className="flex items-center justify-between w-full">
+                    <div className="flex items-center gap-2">
+                      <IconLayout />
+                      <span>{board.title}</span>
+                    </div>
+                  </div>
+                </Link>
               </SidebarMenuButton>
+
               <DropdownMenu>
-                <DropdownMenuTrigger asChild>
+                <DropdownMenuTrigger
+                  asChild
+                  onClick={(e) => {
+                    e.stopPropagation();
+                  }}
+                >
                   <SidebarMenuAction
                     showOnHover
                     className="data-[state=open]:bg-accent rounded-sm"
@@ -68,6 +83,7 @@ export function NavBoards() {
                     <span className="sr-only">More</span>
                   </SidebarMenuAction>
                 </DropdownMenuTrigger>
+
                 <DropdownMenuContent
                   className="w-24 rounded-lg"
                   side={isMobile ? "bottom" : "right"}
