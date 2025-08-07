@@ -54,7 +54,7 @@ export function SignInForm({
     setIsLoading(true);
     const res = await signIn(values);
     if (res.success) {
-      router.push("/");
+      router.push("/dashboard");
     } else {
       form.reset();
       toast.error(res.error);

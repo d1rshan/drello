@@ -1,16 +1,20 @@
-import { AppSidebar } from "@/components/app-sidebar"
-import { ChartAreaInteractive } from "@/components/chart-area-interactive"
-import { DataTable } from "@/components/data-table"
-import { SectionCards } from "@/components/section-cards"
-import { SiteHeader } from "@/components/site-header"
-import {
-  SidebarInset,
-  SidebarProvider,
-} from "@/components/ui/sidebar"
+import { headers } from "next/headers";
+import { redirect } from "next/navigation";
 
-import data from "./data.json"
+import { AppSidebar } from "@/components/sidebar/app-sidebar";
+import { SectionCards } from "@/components/sidebar/section-cards";
+import { SiteHeader } from "@/components/sidebar/site-header";
+import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
+import { auth } from "@/lib/auth";
 
-export default function Page() {
+export default async function DashboardPage() {
+  // extra check other than middleware as it only checks for session cookie locally
+  const session = await auth.api.getSession({
+    headers: await headers(),
+  });
+  if (!session) {
+    return redirect("/sign-in");
+  }
   return (
     <SidebarProvider
       style={
@@ -27,14 +31,10 @@ export default function Page() {
           <div className="@container/main flex flex-1 flex-col gap-2">
             <div className="flex flex-col gap-4 py-4 md:gap-6 md:py-6">
               <SectionCards />
-              <div className="px-4 lg:px-6">
-                <ChartAreaInteractive />
-              </div>
-              <DataTable data={data} />
             </div>
           </div>
         </div>
       </SidebarInset>
     </SidebarProvider>
-  )
+  );
 }
