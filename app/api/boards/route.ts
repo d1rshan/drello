@@ -4,6 +4,7 @@ import { db } from "@/lib/db";
 import { boardMembersTable, boardsTable } from "@/lib/db/schema";
 import { currentUser } from "@/lib/auth/current-user";
 import { eq } from "drizzle-orm";
+import { title } from "process";
 
 export async function POST(req: Request) {
   try {
@@ -47,8 +48,12 @@ export async function GET(req: Request) {
       return new NextResponse("Not Authorized", { status: 401 });
     }
 
-    const userBoards = await db
-      .select()
+    const boards = await db
+      .select({
+        id: boardsTable.id,
+        title: boardsTable.title,
+        role: boardMembersTable.role,
+      })
       .from(boardsTable)
       .innerJoin(
         boardMembersTable,
@@ -56,7 +61,7 @@ export async function GET(req: Request) {
       )
       .where(eq(boardMembersTable.userId, user.id));
 
-    return NextResponse.json(userBoards);
+    return NextResponse.json(boards);
   } catch (error) {
     console.log("[BOARDS_GET]", error);
     return new NextResponse("Internal Error", { status: 500 });
