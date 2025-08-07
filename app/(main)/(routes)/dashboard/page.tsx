@@ -20,5 +20,9 @@ export default async function DashboardPage() {
     .innerJoin(boardMembersTable, eq(boardsTable.id, boardMembersTable.boardId))
     .where(eq(boardMembersTable.userId, user.id));
 
-  return <BoardCards userBoards={userBoards} />;
+  return (
+    <>
+      <BoardCards userBoards={userBoards} />
+    </>
+  );
 }

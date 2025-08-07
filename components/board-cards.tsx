@@ -1,7 +1,10 @@
-import { IconMenu3 } from "@tabler/icons-react";
+"use client";
+
+import { IconTrash } from "@tabler/icons-react";
 
 import { Card, CardAction, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { useQuery } from "@tanstack/react-query";
 
 interface BoardCardsProps {
   userBoards: {
@@ -18,6 +21,11 @@ interface BoardCardsProps {
   }[];
 }
 export function BoardCards({ userBoards }: BoardCardsProps) {
+  const query = useQuery({
+    queryKey: "boards",
+    queryFn: getBoards,
+    initialData: userBoards,
+  });
   return (
     <div className="*:data-[slot=card]:from-primary/5 *:data-[slot=card]:to-card dark:*:data-[slot=card]:bg-card grid grid-cols-1 gap-4 px-4 *:data-[slot=card]:bg-gradient-to-t *:data-[slot=card]:shadow-xs lg:px-6 @xl/main:grid-cols-2 @5xl/main:grid-cols-4">
       {userBoards.map((userBoard) => (
@@ -27,8 +35,8 @@ export function BoardCards({ userBoards }: BoardCardsProps) {
               {userBoard.boards.title}
             </CardTitle>
             <CardAction>
-              <Button variant={"ghost"} size={"icon"}>
-                <IconMenu3 />
+              <Button variant={"destructive"} size={"icon"}>
+                <IconTrash />
               </Button>
             </CardAction>
           </CardHeader>
