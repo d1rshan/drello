@@ -5,6 +5,7 @@ import { boardMembersTable, boardsTable } from "@/lib/db/schema";
 import { currentUser } from "@/lib/auth/current-user";
 import { eq } from "drizzle-orm";
 import { title } from "process";
+import { sleep } from "@/lib/utils";
 
 export async function POST(req: Request) {
   try {
@@ -33,6 +34,7 @@ export async function POST(req: Request) {
       role: "ADMIN",
     });
 
+    await sleep();
     return NextResponse.json(board);
   } catch (error) {
     console.log("[BOARDS_POST]", error);
@@ -60,6 +62,8 @@ export async function GET(req: Request) {
         eq(boardsTable.id, boardMembersTable.boardId)
       )
       .where(eq(boardMembersTable.userId, user.id));
+
+    await sleep();
 
     return NextResponse.json(boards);
   } catch (error) {

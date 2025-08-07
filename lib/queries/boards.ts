@@ -6,6 +6,7 @@ export const getBoards = async () => {
 };
 
 export const deleteBoard = async (boardId: string) => {
+  console.log("DELETE");
   const res = await axios.delete(`/api/boards/${boardId}`);
 };
 

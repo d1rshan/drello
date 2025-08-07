@@ -32,3 +32,6 @@ export function isUUID(value: string): boolean {
 
   return uuidRegex.test(value);
 }
+
+export const sleep = (ms?: number) =>
+  new Promise((resolve) => setTimeout(resolve, ms || 200));

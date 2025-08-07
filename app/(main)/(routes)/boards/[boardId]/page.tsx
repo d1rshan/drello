@@ -3,7 +3,7 @@ import { redirect } from "next/navigation";
 
 import { currentUser } from "@/lib/auth/current-user";
 import { db } from "@/lib/db";
-import { boardMembersTable, boardsTable } from "@/lib/db/schema";
+import { boardMembersTable } from "@/lib/db/schema";
 import { isUUID } from "@/lib/utils";
 
 export default async function BoardIdPage({
@@ -23,7 +23,7 @@ export default async function BoardIdPage({
     return redirect("/sign-in");
   }
 
-  const [isBoardMember] = await db
+  const [isABoardMember] = await db
     .select()
     .from(boardMembersTable)
     .where(
@@ -33,9 +33,9 @@ export default async function BoardIdPage({
       )
     );
 
-  if (!isBoardMember) {
+  if (!isABoardMember) {
     return redirect("/dashboard");
   }
 
-  return <div>{isBoardMember.boardId}</div>;
+  return <div>{isABoardMember.role}</div>;
 }

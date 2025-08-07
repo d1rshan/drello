@@ -1,13 +1,9 @@
 "use client";
 
-import {
-  IconDots,
-  IconFolder,
-  IconLayout,
-  IconShare3,
-  IconTrash,
-  type Icon,
-} from "@tabler/icons-react";
+import { IconDots, IconEdit, IconLayout, IconTrash } from "@tabler/icons-react";
+import { usePathname } from "next/navigation";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -24,20 +20,26 @@ import {
   SidebarMenuItem,
   useSidebar,
 } from "@/components/ui/sidebar";
-import { useQuery } from "@tanstack/react-query";
-import { getBoards } from "@/lib/queries/boards";
+import { deleteBoard, getBoards } from "@/lib/queries/boards";
 import { Board } from "@/types";
-import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
 
 export function NavBoards() {
   const { isMobile } = useSidebar();
+  const queryClient = useQueryClient();
+
   const pathname = usePathname();
 
-  console.log("HELLO");
   const { data: boards } = useQuery({
     queryKey: ["boards"],
     queryFn: getBoards,
+  });
+
+  const { mutate } = useMutation({
+    mutationFn: (boardId: string) => deleteBoard(boardId),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["boards"] });
+    },
   });
 
   return (
@@ -72,15 +74,14 @@ export function NavBoards() {
                   align={isMobile ? "end" : "start"}
                 >
                   <DropdownMenuItem>
-                    <IconFolder />
-                    <span>Open</span>
-                  </DropdownMenuItem>
-                  <DropdownMenuItem>
-                    <IconShare3 />
-                    <span>Share</span>
+                    <IconEdit />
+                    <span>Edit</span>
                   </DropdownMenuItem>
                   <DropdownMenuSeparator />
-                  <DropdownMenuItem variant="destructive">
+                  <DropdownMenuItem
+                    variant="destructive"
+                    onClick={() => mutate(board.id)}
+                  >
                     <IconTrash />
                     <span>Delete</span>
                   </DropdownMenuItem>

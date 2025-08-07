@@ -4,6 +4,7 @@ import { and, eq } from "drizzle-orm";
 import { currentUser } from "@/lib/auth/current-user";
 import { db } from "@/lib/db";
 import { boardMembersTable, boardsTable } from "@/lib/db/schema";
+import { sleep } from "@/lib/utils";
 
 export async function PATCH(
   req: Request,
@@ -45,6 +46,7 @@ export async function PATCH(
       .where(eq(boardsTable.id, p.boardId))
       .returning();
 
+    await sleep();
     return NextResponse.json(board);
   } catch (error) {
     console.log("[BOARD_ID_PATCH]");
@@ -82,6 +84,7 @@ export async function DELETE(
       .delete(boardsTable)
       .where(eq(boardsTable.id, p.boardId));
 
+    await sleep();
     return NextResponse.json(board);
   } catch (error) {
     console.log("[BOARD_ID_DELETE]", error);
