@@ -1,7 +1,7 @@
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 
-import { SectionCards } from "@/components/sidebar/section-cards";
+import { BoardCards } from "@/components/board-cards";
 import { auth } from "@/lib/auth";
 
 export default async function DashboardPage() {
@@ -12,5 +12,5 @@ export default async function DashboardPage() {
   if (!session) {
     return redirect("/sign-in");
   }
-  return <SectionCards />;
+  return <BoardCards />;
 }
