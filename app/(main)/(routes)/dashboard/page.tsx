@@ -1,10 +1,10 @@
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 
+import { SectionCards } from "@/components/sidebar/section-cards";
 import { auth } from "@/lib/auth";
-import { SignOutButton } from "@/components/auth/sign-out-button";
 
-export default async function HomePage() {
+export default async function DashboardPage() {
   // extra check other than middleware as it only checks for session cookie locally
   const session = await auth.api.getSession({
     headers: await headers(),
@@ -12,9 +12,5 @@ export default async function HomePage() {
   if (!session) {
     return redirect("/sign-in");
   }
-  return (
-    <div>
-      Hello <SignOutButton />
-    </div>
-  );
+  return <SectionCards />;
 }
