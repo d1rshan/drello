@@ -1,10 +1,10 @@
 "use client";
 
-import axios from "axios";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
-import { useRouter } from "next/navigation";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -25,16 +25,15 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
-import { toast } from "sonner";
-import { useQueryClient } from "@tanstack/react-query";
+import { createBoard } from "@/lib/queries/boards";
 
 const formSchema = z.object({
   title: z.string().min(1, { error: "Board Title is Required" }).max(30),
 });
 
 export function CreateBoardModal() {
-  const router = useRouter();
   const { isOpen, onClose, type } = useModal();
+  const queryClient = useQueryClient();
 
   const isModalOpen = isOpen && type === "createBoard";
 
@@ -45,20 +44,18 @@ export function CreateBoardModal() {
     },
   });
 
-  const { isSubmitting } = form.formState;
-  const queryClient = useQueryClient();
+  const { mutate, isPending } = useMutation({
+    mutationFn: (title: string) => createBoard(title),
+    onSuccess: () => {
+      toast.success("Board Created!");
+      queryClient.invalidateQueries({ queryKey: ["boards"] });
+    },
+  });
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
-    try {
-      const res = await axios.post("/api/boards", values);
-      // router.refresh();
-      queryClient.invalidateQueries({ queryKey: ["boards"] });
-      toast.success("Board Created!");
-      form.reset();
-      onClose();
-    } catch (error) {
-      console.log(error);
-    }
+    mutate(values.title);
+    form.reset();
+    onClose();
   }
 
   return (
@@ -88,7 +85,7 @@ export function CreateBoardModal() {
                   Cancel
                 </Button>
               </DialogClose>
-              <Button type="submit" disabled={isSubmitting}>
+              <Button type="submit" disabled={isPending}>
                 Create
               </Button>
             </DialogFooter>

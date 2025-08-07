@@ -5,40 +5,19 @@ import { IconTrash } from "@tabler/icons-react";
 import { Card, CardAction, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import axios from "axios";
+import { deleteBoard, getBoards } from "@/lib/queries/boards";
 
-interface BoardCardsProps {
-  userBoards: {
-    boards: {
-      id: string;
-      title: string;
-    };
-    board_members: {
-      id: string;
-      userId: string | null;
-      boardId: string | null;
-      role: "GUEST" | "ADMIN" | null;
-    };
-  }[];
-}
-
-const getBoards = async () => {
-  const res = await axios.get("/api/boards");
-  return res.data;
-};
-export function BoardCards({ userBoards }: BoardCardsProps) {
+export function BoardCards() {
   const queryClient = useQueryClient();
 
   const { data: boards } = useQuery({
     queryKey: ["boards"],
     queryFn: getBoards,
-    initialData: userBoards,
+    staleTime: 5000,
   });
 
   const { mutate } = useMutation({
-    mutationFn: async (boardId: string) => {
-      const res = await axios.delete(`/api/boards/${boardId}`);
-    },
+    mutationFn: (boardId: string) => deleteBoard(boardId),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["boards"] });
     },
