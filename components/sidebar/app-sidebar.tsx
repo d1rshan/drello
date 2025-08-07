@@ -43,23 +43,6 @@ const data = {
       icon: IconHelp,
     },
   ],
-  boards: [
-    {
-      name: "Board 1",
-      url: "#",
-      icon: IconLayoutBoard,
-    },
-    {
-      name: "Board 2",
-      url: "#",
-      icon: IconLayoutBoard,
-    },
-    {
-      name: "Board 3",
-      url: "#",
-      icon: IconLayoutBoard,
-    },
-  ],
 };
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
@@ -82,7 +65,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       </SidebarHeader>
       <SidebarContent>
         <NavMain items={data.navMain} />
-        <NavBoards items={data.boards} />
+        <NavBoards />
         <NavSecondary items={data.navSecondary} className="mt-auto" />
       </SidebarContent>
       <SidebarFooter>

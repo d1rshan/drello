@@ -3,11 +3,11 @@
 import {
   IconDots,
   IconFolder,
+  IconLayout,
   IconShare3,
   IconTrash,
   type Icon,
 } from "@tabler/icons-react";
-
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -24,29 +24,29 @@ import {
   SidebarMenuItem,
   useSidebar,
 } from "@/components/ui/sidebar";
+import { useQuery } from "@tanstack/react-query";
+import { getBoards } from "@/lib/queries/boards";
+import { Board } from "@/types";
 
-export function NavBoards({
-  items,
-}: {
-  items: {
-    name: string;
-    url: string;
-    icon: Icon;
-  }[];
-}) {
+export function NavBoards() {
   const { isMobile } = useSidebar();
+
+  const { data: boards } = useQuery({
+    queryKey: ["boards"],
+    queryFn: getBoards,
+  });
 
   return (
     <SidebarGroup className="group-data-[collapsible=icon]:hidden">
       <SidebarGroupLabel>Boards</SidebarGroupLabel>
       <SidebarMenu>
-        {items.map((item) => (
-          <SidebarMenuItem key={item.name}>
+        {boards.slice(0, 5).map((board: Board) => (
+          <SidebarMenuItem key={board.id}>
             <SidebarMenuButton asChild>
-              <a href={item.url}>
-                <item.icon />
-                <span>{item.name}</span>
-              </a>
+              <div>
+                <IconLayout />
+                <span>{board.title}</span>
+              </div>
             </SidebarMenuButton>
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
