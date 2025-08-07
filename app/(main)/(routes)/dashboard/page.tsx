@@ -2,7 +2,7 @@ import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 
 import { BoardCards } from "@/components/board-cards";
-import { auth } from "@/lib/auth";
+import { auth } from "@/lib/auth/auth";
 
 export default async function DashboardPage() {
   // extra check other than middleware as it only checks for session cookie locally

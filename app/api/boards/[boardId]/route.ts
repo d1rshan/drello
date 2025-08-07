@@ -1,9 +1,9 @@
 import { NextResponse } from "next/server";
+import { and, eq } from "drizzle-orm";
 
 import { currentUser } from "@/lib/utils";
 import { db } from "@/lib/db";
 import { boardMembersTable, boardsTable } from "@/lib/db/schema";
-import { and, eq } from "drizzle-orm";
 
 export async function PATCH(
   req: Request,

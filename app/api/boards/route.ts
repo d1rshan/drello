@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 
 import { db } from "@/lib/db";
 import { boardMembersTable, boardsTable } from "@/lib/db/schema";
-import { currentUser } from "@/lib/utils";
+import { currentUser } from "@/lib/auth/current-user";
 
 export async function POST(req: Request) {
   try {
