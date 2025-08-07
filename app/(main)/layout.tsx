@@ -28,6 +28,7 @@ export default async function MainLayout({
         } as React.CSSProperties
       }
     >
+      <ModalProvider />
       <AppSidebar
         variant="inset"
         user={{ email: user.email, name: user.name, avatar: user.image! }}
@@ -38,7 +39,6 @@ export default async function MainLayout({
           <div className="@container/main flex flex-1 flex-col gap-2">
             <div className="flex flex-col gap-4 py-4 md:gap-6 md:py-6">
               {children}
-              <ModalProvider />
             </div>
           </div>
         </div>
