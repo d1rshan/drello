@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { and, eq } from "drizzle-orm";
 
-import { currentUser } from "@/lib/utils";
+import { currentUser } from "@/lib/auth/current-user";
 import { db } from "@/lib/db";
 import { boardMembersTable, boardsTable } from "@/lib/db/schema";
 

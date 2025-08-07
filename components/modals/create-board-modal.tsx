@@ -26,6 +26,7 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { toast } from "sonner";
+import { useQueryClient } from "@tanstack/react-query";
 
 const formSchema = z.object({
   title: z.string().min(1, { error: "Board Title is Required" }).max(30),
@@ -45,11 +46,13 @@ export function CreateBoardModal() {
   });
 
   const { isSubmitting } = form.formState;
+  const queryClient = useQueryClient();
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
     try {
       const res = await axios.post("/api/boards", values);
-      router.refresh();
+      // router.refresh();
+      queryClient.invalidateQueries({ queryKey: ["boards"] });
       toast.success("Board Created!");
       form.reset();
       onClose();
