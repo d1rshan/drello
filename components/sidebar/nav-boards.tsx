@@ -24,10 +24,13 @@ import { deleteBoard, getBoards } from "@/lib/queries/boards";
 import { Board } from "@/types";
 import { cn } from "@/lib/utils";
 import Link from "next/link";
+import { toast } from "sonner";
+import { useModal } from "@/hooks/use-modal";
 
 export function NavBoards() {
   const { isMobile } = useSidebar();
   const queryClient = useQueryClient();
+  const { onOpen } = useModal();
 
   const pathname = usePathname();
 
@@ -39,6 +42,7 @@ export function NavBoards() {
   const { mutate } = useMutation({
     mutationFn: (boardId: string) => deleteBoard(boardId),
     onSuccess: () => {
+      toast.success("Board deleted!");
       queryClient.invalidateQueries({ queryKey: ["boards"] });
     },
   });
@@ -47,7 +51,7 @@ export function NavBoards() {
     <SidebarGroup className="group-data-[collapsible=icon]:hidden">
       <SidebarGroupLabel>Boards</SidebarGroupLabel>
       <SidebarMenu>
-        {boards.slice(0, 5).map((board: Board) => {
+        {boards.slice(0, 10).map((board: Board) => {
           const isActive = pathname === `/boards/${board.id}`;
           return (
             <SidebarMenuItem key={board.id}>
@@ -90,7 +94,14 @@ export function NavBoards() {
                     side={isMobile ? "bottom" : "right"}
                     align={isMobile ? "end" : "start"}
                   >
-                    <DropdownMenuItem>
+                    <DropdownMenuItem
+                      onClick={() =>
+                        onOpen("editBoard", {
+                          boardId: board.id,
+                          boardTitle: board.title,
+                        })
+                      }
+                    >
                       <IconEdit />
                       <span>Edit</span>
                     </DropdownMenuItem>

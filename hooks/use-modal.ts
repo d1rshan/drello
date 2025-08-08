@@ -1,6 +1,6 @@
 import { create } from "zustand";
 
-export type ModalType = "createBoard";
+export type ModalType = "createBoard" | "editBoard";
 
 // interface ModalData {
 //   server?: Server;
@@ -12,7 +12,10 @@ export type ModalType = "createBoard";
 
 interface ModalStore {
   type: ModalType | null;
-  data: any;
+  data: {
+    boardId?: string;
+    boardTitle?: string;
+  };
   isOpen: boolean;
   onOpen: (type: ModalType, data?: any) => void;
   onClose: () => void;

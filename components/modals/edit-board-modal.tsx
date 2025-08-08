@@ -5,7 +5,6 @@ import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { useRouter } from "next/navigation";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -26,37 +25,48 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
-import { createBoard } from "@/lib/queries/boards";
+import { editBoard } from "@/lib/queries/boards";
+import { useEffect } from "react";
 
 const formSchema = z.object({
   title: z.string().min(1, { error: "Board Title is Required" }).max(30),
 });
 
-export function CreateBoardModal() {
-  const router = useRouter();
-  const { isOpen, onClose, type } = useModal();
+export function EditBoardModal() {
+  const { isOpen, onClose, type, data } = useModal();
   const queryClient = useQueryClient();
 
-  const isModalOpen = isOpen && type === "createBoard";
+  const isModalOpen = isOpen && type === "editBoard";
+
+  const { boardId, boardTitle } = data;
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      title: "",
+      title: boardTitle!,
     },
   });
 
+  useEffect(() => {
+    if (!boardTitle) return;
+    form.setValue("title", boardTitle);
+  }, [boardTitle]);
+
   const { mutate, isPending } = useMutation({
-    mutationFn: (title: string) => createBoard(title),
-    onSuccess: (data) => {
-      toast.success("Board Created!");
+    mutationFn: ({ boardId, title }: { boardId: string; title: string }) =>
+      editBoard(boardId, title),
+    onSuccess: () => {
+      toast.success("Board Edited!");
       queryClient.invalidateQueries({ queryKey: ["boards"] });
-      router.push(`/boards/${data.id}`);
     },
   });
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
-    mutate(values.title);
+    const { title } = values;
+    if (!boardId) {
+      return;
+    }
+    mutate({ boardId, title });
     form.reset();
     onClose();
   }
@@ -89,7 +99,7 @@ export function CreateBoardModal() {
                 </Button>
               </DialogClose>
               <Button type="submit" disabled={isPending}>
-                Create
+                Save
               </Button>
             </DialogFooter>
           </form>

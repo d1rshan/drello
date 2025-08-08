@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 
 import { CreateBoardModal } from "@/components/modals/create-board-modal";
+import { EditBoardModal } from "@/components/modals/edit-board-modal";
 
 export const ModalProvider = () => {
   const [isMounted, setIsMounted] = useState(false);
@@ -17,6 +18,7 @@ export const ModalProvider = () => {
   return (
     <>
       <CreateBoardModal />
+      <EditBoardModal />
     </>
   );
 };

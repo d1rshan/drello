@@ -12,4 +12,10 @@ export const deleteBoard = async (boardId: string) => {
 
 export const createBoard = async (title: string) => {
   const res = await axios.post("/api/boards", { title });
+  return res.data;
+};
+
+export const editBoard = async (boardId: string, title: string) => {
+  const res = await axios.patch(`/api/boards/${boardId}`, { title });
+  return res.data;
 };
