@@ -37,7 +37,7 @@ export async function PATCH(
       .where(eq(boardsTable.id, p.boardId))
       .returning();
 
-    await sleep();
+    await sleep(1000);
     return NextResponse.json(board);
   } catch (error) {
     console.log("[BOARD_ID_PATCH]");

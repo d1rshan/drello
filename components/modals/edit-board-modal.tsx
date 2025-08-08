@@ -52,7 +52,7 @@ export function EditBoardModal() {
     form.setValue("title", boardTitle);
   }, [boardTitle]);
 
-  const { mutate, isPending } = useMutation({
+  const { mutateAsync, isPending } = useMutation({
     mutationFn: ({ boardId, title }: { boardId: string; title: string }) =>
       editBoard(boardId, title),
     onSuccess: () => {
@@ -66,7 +66,7 @@ export function EditBoardModal() {
     if (!boardId) {
       return;
     }
-    mutate({ boardId, title });
+    await mutateAsync({ boardId, title });
     form.reset();
     onClose();
   }

@@ -46,19 +46,19 @@ export function CreateBoardModal() {
     },
   });
 
-  const { mutate, isPending } = useMutation({
+  const { mutateAsync, isPending } = useMutation({
     mutationFn: (title: string) => createBoard(title),
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ["boards"] });
       toast.success("Board Created!");
       router.push(`/boards/${data.id}`);
-      onClose();
     },
   });
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
-    mutate(values.title);
+    await mutateAsync(values.title);
     form.reset();
+    onClose();
   }
 
   return (
