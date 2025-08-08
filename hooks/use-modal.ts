@@ -1,6 +1,6 @@
 import { create } from "zustand";
 
-export type ModalType = "createBoard" | "editBoard";
+export type ModalType = "createBoard" | "editBoard" | "deleteBoard";
 
 // interface ModalData {
 //   server?: Server;

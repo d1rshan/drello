@@ -49,16 +49,16 @@ export function CreateBoardModal() {
   const { mutate, isPending } = useMutation({
     mutationFn: (title: string) => createBoard(title),
     onSuccess: (data) => {
-      toast.success("Board Created!");
       queryClient.invalidateQueries({ queryKey: ["boards"] });
+      toast.success("Board Created!");
       router.push(`/boards/${data.id}`);
+      onClose();
     },
   });
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
     mutate(values.title);
     form.reset();
-    onClose();
   }
 
   return (

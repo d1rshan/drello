@@ -63,9 +63,10 @@ export async function DELETE(
       return new NextResponse("Not Authorized", { status: 401 });
     }
 
-    const board = await db
+    const [board] = await db
       .delete(boardsTable)
-      .where(eq(boardsTable.id, p.boardId));
+      .where(eq(boardsTable.id, p.boardId))
+      .returning();
 
     await sleep();
     return NextResponse.json(board);

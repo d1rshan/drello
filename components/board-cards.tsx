@@ -1,11 +1,10 @@
 "use client";
 
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useQuery } from "@tanstack/react-query";
 import Link from "next/link";
-import { toast } from "sonner";
 
 import { Card, CardAction, CardHeader, CardTitle } from "@/components/ui/card";
-import { deleteBoard, getBoards } from "@/lib/queries/boards";
+import { getBoards } from "@/lib/queries/boards";
 import { Board } from "@/types";
 import {
   DropdownMenu,
@@ -19,20 +18,11 @@ import { useModal } from "@/hooks/use-modal";
 
 export function BoardCards() {
   const { onOpen } = useModal();
-  const queryClient = useQueryClient();
 
   const { data: boards } = useQuery({
     queryKey: ["boards"],
     queryFn: getBoards,
     staleTime: 5000,
-  });
-
-  const { mutate } = useMutation({
-    mutationFn: (boardId: string) => deleteBoard(boardId),
-    onSuccess: () => {
-      toast.success("Board deleted!");
-      queryClient.invalidateQueries({ queryKey: ["boards"] });
-    },
   });
 
   return (
@@ -78,7 +68,12 @@ export function BoardCards() {
                       <DropdownMenuSeparator />
                       <DropdownMenuItem
                         variant="destructive"
-                        onClick={() => mutate(board.id)}
+                        onClick={() =>
+                          onOpen("deleteBoard", {
+                            boardId: board.id,
+                            boardTitle: board.title,
+                          })
+                        }
                       >
                         <IconTrash />
                         <span>Delete</span>

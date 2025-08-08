@@ -5,33 +5,18 @@ import { usePathname } from "next/navigation";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
 import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import {
   SidebarGroup,
   SidebarGroupLabel,
   SidebarMenu,
-  SidebarMenuAction,
   SidebarMenuButton,
   SidebarMenuItem,
-  useSidebar,
 } from "@/components/ui/sidebar";
-import { deleteBoard, getBoards } from "@/lib/queries/boards";
+import { getBoards } from "@/lib/queries/boards";
 import { Board } from "@/types";
 import { cn } from "@/lib/utils";
 import Link from "next/link";
-import { toast } from "sonner";
-import { useModal } from "@/hooks/use-modal";
 
 export function NavBoards() {
-  const { isMobile } = useSidebar();
-  const queryClient = useQueryClient();
-  const { onOpen } = useModal();
-
   const pathname = usePathname();
 
   const { data: boards } = useQuery({
@@ -39,19 +24,11 @@ export function NavBoards() {
     queryFn: getBoards,
   });
 
-  const { mutate } = useMutation({
-    mutationFn: (boardId: string) => deleteBoard(boardId),
-    onSuccess: () => {
-      toast.success("Board deleted!");
-      queryClient.invalidateQueries({ queryKey: ["boards"] });
-    },
-  });
-
   return (
     <SidebarGroup className="group-data-[collapsible=icon]:hidden">
       <SidebarGroupLabel>Boards</SidebarGroupLabel>
       <SidebarMenu>
-        {boards.slice(0, 10).map((board: Board) => {
+        {boards.slice(0, 7).map((board: Board) => {
           const isActive = pathname === `/boards/${board.id}`;
           return (
             <SidebarMenuItem key={board.id}>
@@ -71,60 +48,9 @@ export function NavBoards() {
                   </div>
                 </Link>
               </SidebarMenuButton>
-
-              {!isActive && (
-                <DropdownMenu>
-                  <DropdownMenuTrigger
-                    asChild
-                    onClick={(e) => {
-                      e.stopPropagation();
-                    }}
-                  >
-                    <SidebarMenuAction
-                      showOnHover
-                      className="data-[state=open]:bg-accent rounded-sm"
-                    >
-                      <IconDots />
-                      <span className="sr-only">More</span>
-                    </SidebarMenuAction>
-                  </DropdownMenuTrigger>
-
-                  <DropdownMenuContent
-                    className="w-24 rounded-lg"
-                    side={isMobile ? "bottom" : "right"}
-                    align={isMobile ? "end" : "start"}
-                  >
-                    <DropdownMenuItem
-                      onClick={() =>
-                        onOpen("editBoard", {
-                          boardId: board.id,
-                          boardTitle: board.title,
-                        })
-                      }
-                    >
-                      <IconEdit />
-                      <span>Edit</span>
-                    </DropdownMenuItem>
-                    <DropdownMenuSeparator />
-                    <DropdownMenuItem
-                      variant="destructive"
-                      onClick={() => mutate(board.id)}
-                    >
-                      <IconTrash />
-                      <span>Delete</span>
-                    </DropdownMenuItem>
-                  </DropdownMenuContent>
-                </DropdownMenu>
-              )}
             </SidebarMenuItem>
           );
         })}
-        <SidebarMenuItem>
-          <SidebarMenuButton className="text-sidebar-foreground/70">
-            <IconDots className="text-sidebar-foreground/70" />
-            <span>More</span>
-          </SidebarMenuButton>
-        </SidebarMenuItem>
       </SidebarMenu>
     </SidebarGroup>
   );
