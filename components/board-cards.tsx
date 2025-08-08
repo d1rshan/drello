@@ -36,50 +36,52 @@ export function BoardCards() {
                   {board.title}
                 </CardTitle>
                 <CardAction>
-                  <DropdownMenu>
-                    <DropdownMenuTrigger
-                      asChild
-                      onClick={(e) => {
-                        e.preventDefault();
-                        e.stopPropagation();
-                      }}
-                    >
-                      <div className="rounded-md p-1.5 opacity-0 transition-opacity group-hover:opacity-100 hover:bg-accent">
-                        <IconDotsVertical />
-                        <span className="sr-only">More</span>
-                      </div>
-                    </DropdownMenuTrigger>
+                  {board.role === "ADMIN" && (
+                    <DropdownMenu>
+                      <DropdownMenuTrigger
+                        asChild
+                        onClick={(e) => {
+                          e.preventDefault();
+                          e.stopPropagation();
+                        }}
+                      >
+                        <div className="rounded-md p-1.5 opacity-0 transition-opacity group-hover:opacity-100 hover:bg-accent">
+                          <IconDotsVertical />
+                          <span className="sr-only">More</span>
+                        </div>
+                      </DropdownMenuTrigger>
 
-                    <DropdownMenuContent
-                      className="w-24 rounded-lg"
-                      onClick={(e) => e.stopPropagation()}
-                    >
-                      <DropdownMenuItem
-                        onClick={() =>
-                          onOpen("editBoard", {
-                            boardId: board.id,
-                            boardTitle: board.title,
-                          })
-                        }
+                      <DropdownMenuContent
+                        className="w-24 rounded-lg"
+                        onClick={(e) => e.stopPropagation()}
                       >
-                        <IconEdit />
-                        <span>Edit</span>
-                      </DropdownMenuItem>
-                      <DropdownMenuSeparator />
-                      <DropdownMenuItem
-                        variant="destructive"
-                        onClick={() =>
-                          onOpen("deleteBoard", {
-                            boardId: board.id,
-                            boardTitle: board.title,
-                          })
-                        }
-                      >
-                        <IconTrash />
-                        <span>Delete</span>
-                      </DropdownMenuItem>
-                    </DropdownMenuContent>
-                  </DropdownMenu>
+                        <DropdownMenuItem
+                          onClick={() =>
+                            onOpen("editBoard", {
+                              boardId: board.id,
+                              boardTitle: board.title,
+                            })
+                          }
+                        >
+                          <IconEdit />
+                          <span>Edit</span>
+                        </DropdownMenuItem>
+                        <DropdownMenuSeparator />
+                        <DropdownMenuItem
+                          variant="destructive"
+                          onClick={() =>
+                            onOpen("deleteBoard", {
+                              boardId: board.id,
+                              boardTitle: board.title,
+                            })
+                          }
+                        >
+                          <IconTrash />
+                          <span>Delete</span>
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                  )}
                 </CardAction>
               </CardHeader>
             </Card>
