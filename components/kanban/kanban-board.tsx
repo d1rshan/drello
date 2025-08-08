@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+
 import {
   DragDropContext,
   Draggable,
@@ -9,9 +10,11 @@ import {
 } from "@hello-pangea/dnd";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
-import { Plus, X, GripVertical, MoreHorizontal } from "lucide-react";
+import { Plus, X } from "lucide-react";
 import { cn } from "@/lib/utils";
+
+import { ListCards } from "./list-cards";
+import { ListHeader } from "./list-header";
 
 // Simple ID generator to avoid extra deps
 function uid(prefix = "id") {
@@ -20,7 +23,7 @@ function uid(prefix = "id") {
     .slice(2, 8)}_${Date.now().toString(36)}`;
 }
 
-function getDraggableStyle(
+export function getDraggableStyle(
   style: any,
   snapshot: { isDragging: boolean; isDropAnimating: boolean }
 ) {
@@ -35,13 +38,13 @@ function getDraggableStyle(
   return style;
 }
 
-type Card = {
+export type Card = {
   id: string;
   title: string;
   description?: string;
 };
 
-type List = {
+export type List = {
   id: string;
   title: string;
   cardIds: string[];
@@ -357,302 +360,5 @@ export default function KanbanBoard({
         }
       `}</style>
     </div>
-  );
-}
-
-function ListHeader({
-  title = "List",
-  onRename = () => {},
-  dragHandleProps,
-}: {
-  title?: string;
-  onRename?: (title: string) => void;
-  dragHandleProps?: any;
-}) {
-  const [editing, setEditing] = useState(false);
-  const [val, setVal] = useState(title);
-
-  useEffect(() => setVal(title), [title]);
-
-  return (
-    <div className="mb-2 flex items-center gap-2">
-      <div className="flex flex-1 items-center gap-2">
-        <button
-          className="cursor-grab text-zinc-400 hover:text-zinc-500"
-          aria-label="Drag list"
-          {...dragHandleProps}
-        >
-          <GripVertical className="h-4 w-4" />
-        </button>
-
-        {editing ? (
-          <Input
-            value={val}
-            autoFocus
-            onChange={(e) => setVal(e.target.value)}
-            onBlur={() => {
-              onRename(val.trim() || title);
-              setEditing(false);
-            }}
-            onKeyDown={(e) => {
-              if (e.key === "Enter") {
-                onRename(val.trim() || title);
-                setEditing(false);
-              } else if (e.key === "Escape") {
-                setVal(title);
-                setEditing(false);
-              }
-            }}
-            // Natural, unobtrusive size to match label
-            className={cn(
-              "h-7 w-full bg-white dark:bg-zinc-900",
-              "px-1 py-0 text-sm leading-none",
-              "border border-zinc-300 dark:border-zinc-700",
-              "focus-visible:ring-0 focus-visible:ring-offset-0"
-            )}
-            aria-label="List title"
-          />
-        ) : (
-          <button
-            onClick={() => setEditing(true)}
-            className="line-clamp-1 cursor-text rounded px-1 text-sm font-medium text-zinc-800 hover:bg-white/60 dark:text-zinc-100 dark:hover:bg-white/5"
-            aria-label="Edit list title"
-            title="Click to rename"
-          >
-            {title}
-          </button>
-        )}
-      </div>
-
-      <Button
-        variant="ghost"
-        size="icon"
-        className="size-7 text-zinc-500"
-        aria-label="List menu"
-      >
-        <MoreHorizontal className="h-4 w-4" />
-      </Button>
-    </div>
-  );
-}
-
-function ListCards({
-  listId = "list-0",
-  cards = [],
-  onAddCard = () => {},
-  onRenameCard = () => {},
-}: {
-  listId?: string;
-  cards?: Card[];
-  onAddCard?: (title: string) => void;
-  onRenameCard?: (cardId: string, title: string) => void;
-}) {
-  const [adding, setAdding] = useState(false);
-  const [text, setText] = useState("");
-  const [editingId, setEditingId] = useState<string | null>(null);
-  const [editingText, setEditingText] = useState("");
-
-  function startEdit(card: Card) {
-    setEditingId(card.id);
-    setEditingText(card.title);
-    // Close the add composer to avoid overlap while editing
-    setAdding(false);
-  }
-
-  function cancelEdit() {
-    setEditingId(null);
-    setEditingText("");
-  }
-
-  function saveEdit() {
-    if (editingId && editingText.trim()) {
-      onRenameCard(editingId, editingText.trim());
-    }
-    cancelEdit();
-  }
-
-  const scrollRef = useRef<HTMLDivElement | null>(null);
-
-  function scrollToBottom(smooth = true) {
-    const el = scrollRef.current;
-    if (!el) return;
-    el.scrollTo({ top: el.scrollHeight, behavior: smooth ? "smooth" : "auto" });
-  }
-
-  // When opening the composer, ensure it's visible
-  useEffect(() => {
-    if (adding) {
-      requestAnimationFrame(() => scrollToBottom(true));
-    }
-  }, [adding]);
-
-  // When a new card is added while composer is open, keep scrolled to the end
-  useEffect(() => {
-    if (adding) {
-      requestAnimationFrame(() => scrollToBottom(true));
-    }
-  }, [cards.length, adding]);
-
-  function handleConfirmAdd() {
-    if (text.trim()) {
-      onAddCard(text);
-      setText("");
-      // Wait for DOM to update, then scroll to bottom
-      requestAnimationFrame(() => scrollToBottom(true));
-    }
-  }
-
-  return (
-    // Keep Droppable non-scrollable to avoid nested scroll warning
-    <Droppable droppableId={listId} type="CARD">
-      {(provided, snapshot) => (
-        <div
-          ref={provided.innerRef}
-          {...provided.droppableProps}
-          className="flex flex-1 min-h-0 flex-col pr-1"
-          aria-label={`Cards in list ${listId}`}
-        >
-          {/* Inner scroll area fills remaining height of column */}
-          <div
-            className={cn("no-scrollbar flex-1 min-h-0 overflow-y-auto")}
-            ref={scrollRef}
-          >
-            <div
-              className={cn(
-                "flex flex-col gap-2",
-                snapshot.isDraggingOver &&
-                  "rounded-md bg-black/5 p-1 dark:bg-white/10"
-              )}
-            >
-              {cards.map((card, index) => (
-                <Draggable draggableId={card.id} index={index} key={card.id}>
-                  {(dragProvided, dragSnapshot) => {
-                    const isEditing = editingId === card.id;
-                    return (
-                      <div
-                        ref={dragProvided.innerRef}
-                        {...dragProvided.draggableProps}
-                        {...dragProvided.dragHandleProps}
-                        style={getDraggableStyle(
-                          dragProvided.draggableProps.style,
-                          dragSnapshot
-                        )}
-                        className={cn(
-                          "rounded-md border border-zinc-200 bg-white text-sm text-zinc-800 shadow-sm transition-colors hover:bg-zinc-50 dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-100 dark:hover:bg-zinc-900/80",
-                          dragSnapshot.isDragging &&
-                            "border-black/40 dark:border-white/50"
-                        )}
-                        onDoubleClick={() => startEdit(card)}
-                      >
-                        {isEditing ? (
-                          <div className="p-2">
-                            <Textarea
-                              value={editingText}
-                              autoFocus
-                              onChange={(e) => setEditingText(e.target.value)}
-                              onKeyDown={(e) => {
-                                if (e.key === "Enter" && !e.shiftKey) {
-                                  e.preventDefault();
-                                  if (editingText.trim()) saveEdit();
-                                } else if (e.key === "Escape") {
-                                  cancelEdit();
-                                }
-                              }}
-                              placeholder="Edit card title..."
-                              className="mb-2 min-h-[64px] resize-none bg-white dark:bg-zinc-900"
-                              aria-label="Edit card title"
-                            />
-                            <div className="flex items-center gap-2">
-                              <Button
-                                size="sm"
-                                onClick={saveEdit}
-                                className="bg-black text-white hover:bg-black/90 dark:bg-white dark:text-black dark:hover:bg-white/90"
-                              >
-                                Save
-                              </Button>
-                              <Button
-                                variant="ghost"
-                                size="icon"
-                                aria-label="Discard edit"
-                                onClick={cancelEdit}
-                              >
-                                <X className="h-5 w-5" />
-                              </Button>
-                            </div>
-                          </div>
-                        ) : (
-                          <div className="min-h-[36px] whitespace-pre-wrap p-2">
-                            {card.title}
-                          </div>
-                        )}
-                      </div>
-                    );
-                  }}
-                </Draggable>
-              ))}
-
-              {provided.placeholder}
-
-              {/* Composer or Add button stays at the end of the list INSIDE the scroll area */}
-              {adding ? (
-                <div className="rounded-md bg-white p-2 ring-1 ring-zinc-200 dark:bg-zinc-900 dark:ring-zinc-800">
-                  <Textarea
-                    value={text}
-                    autoFocus
-                    onChange={(e) => setText(e.target.value)}
-                    onKeyDown={(e) => {
-                      if (e.key === "Enter" && !e.shiftKey) {
-                        e.preventDefault();
-                        handleConfirmAdd();
-                      } else if (e.key === "Escape") {
-                        setAdding(false);
-                        setText("");
-                      }
-                    }}
-                    placeholder="Enter a title for this card..."
-                    className="mb-2 min-h-[64px] resize-none bg-white dark:bg-zinc-900"
-                    aria-label="New card title"
-                  />
-                  <div className="flex items-center gap-2">
-                    <Button
-                      size="sm"
-                      onClick={handleConfirmAdd}
-                      className="bg-black text-white hover:bg-black/90 dark:bg-white dark:text-black dark:hover:bg-white/90"
-                    >
-                      Add card
-                    </Button>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      aria-label="Cancel add card"
-                      onClick={() => {
-                        setAdding(false);
-                        setText("");
-                      }}
-                    >
-                      <X className="h-5 w-5" />
-                    </Button>
-                  </div>
-                </div>
-              ) : (
-                <button
-                  onClick={() => {
-                    setEditingId(null);
-                    setAdding(true);
-                    // Make sure the composer is visible right away
-                    requestAnimationFrame(() => scrollToBottom(true));
-                  }}
-                  className="mt-1 flex w-full items-center gap-2 rounded-md p-2 text-left text-sm text-zinc-600 transition hover:bg-zinc-200/60 dark:text-zinc-300 dark:hover:bg-zinc-800/60"
-                  aria-label="Add a card"
-                >
-                  <Plus className="h-4 w-4" />
-                  <span>Add a card</span>
-                </button>
-              )}
-            </div>
-          </div>
-        </div>
-      )}
-    </Droppable>
   );
 }

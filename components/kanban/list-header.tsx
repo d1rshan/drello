@@ -1,0 +1,82 @@
+import { useEffect, useState } from "react";
+import { GripVertical, MoreHorizontal } from "lucide-react";
+
+import { Input } from "@/components/ui/input";
+import { cn } from "@/lib/utils";
+import { Button } from "@/components/ui/button";
+
+export function ListHeader({
+  title = "List",
+  onRename = () => {},
+  dragHandleProps,
+}: {
+  title?: string;
+  onRename?: (title: string) => void;
+  dragHandleProps?: any;
+}) {
+  const [editing, setEditing] = useState(false);
+  const [val, setVal] = useState(title);
+
+  useEffect(() => setVal(title), [title]);
+
+  return (
+    <div className="mb-2 flex items-center gap-2">
+      <div className="flex flex-1 items-center gap-2">
+        <button
+          className="cursor-grab text-zinc-400 hover:text-zinc-500"
+          aria-label="Drag list"
+          {...dragHandleProps}
+        >
+          <GripVertical className="h-4 w-4" />
+        </button>
+
+        {editing ? (
+          <Input
+            value={val}
+            autoFocus
+            onChange={(e) => setVal(e.target.value)}
+            onBlur={() => {
+              onRename(val.trim() || title);
+              setEditing(false);
+            }}
+            onKeyDown={(e) => {
+              if (e.key === "Enter") {
+                onRename(val.trim() || title);
+                setEditing(false);
+              } else if (e.key === "Escape") {
+                setVal(title);
+                setEditing(false);
+              }
+            }}
+            // Natural, unobtrusive size to match label
+            className={cn(
+              "h-7 w-full bg-white dark:bg-zinc-900",
+              "px-1 py-0 text-sm leading-none",
+              "border border-zinc-300 dark:border-zinc-700",
+              "focus-visible:ring-0 focus-visible:ring-offset-0"
+            )}
+            aria-label="List title"
+          />
+        ) : (
+          <button
+            onClick={() => setEditing(true)}
+            className="line-clamp-1 cursor-text rounded px-1 text-sm font-medium text-zinc-800 hover:bg-white/60 dark:text-zinc-100 dark:hover:bg-white/5"
+            aria-label="Edit list title"
+            title="Click to rename"
+          >
+            {title}
+          </button>
+        )}
+      </div>
+
+      <Button
+        variant="ghost"
+        size="icon"
+        className="size-7 text-zinc-500"
+        aria-label="List menu"
+      >
+        <MoreHorizontal className="h-4 w-4" />
+      </Button>
+    </div>
+  );
+}
