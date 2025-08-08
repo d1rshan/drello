@@ -1,6 +1,9 @@
-import { db } from "./db";
-import { boardMembersTable } from "./db/schema";
 import { and, eq } from "drizzle-orm";
+import { headers } from "next/headers";
+
+import { db } from "@/lib/db";
+import { boardMembersTable } from "@/lib/db/schema";
+import { auth } from "@/lib/auth/auth";
 
 export function isUUID(value: string): boolean {
   const uuidRegex =
@@ -27,3 +30,15 @@ export const isABoardMember = async (userId: string, boardId: string) => {
 
   return member;
 };
+
+export async function currentUser() {
+  const currentSession = await auth.api.getSession({
+    headers: await headers(),
+  });
+
+  if (!currentSession) return null;
+
+  const user = currentSession.user;
+
+  return user;
+}

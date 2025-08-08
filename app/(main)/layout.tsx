@@ -6,7 +6,7 @@ import { ModalProvider } from "@/components/providers/modal-provider";
 import { AppSidebar } from "@/components/sidebar/app-sidebar";
 import { SiteHeader } from "@/components/sidebar/site-header";
 import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
-import { currentUser } from "@/lib/auth/current-user";
+import { currentUser } from "@/lib/server-utils";
 import { db } from "@/lib/db";
 import { boardMembersTable, boardsTable } from "@/lib/db/schema";
 import { getQueryClient } from "@/lib/utils";
@@ -27,6 +27,7 @@ export default async function MainLayout({
   await queryClient.prefetchQuery({
     queryKey: ["boards"],
     queryFn: async () => {
+      // TODO: Make this a util ig
       const boards = await db
         .select({
           id: boardsTable.id,

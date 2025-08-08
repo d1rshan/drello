@@ -1,7 +1,6 @@
 import { redirect } from "next/navigation";
 
-import { currentUser } from "@/lib/auth/current-user";
-import { isUUID, isABoardMember } from "@/lib/server-utils";
+import { isUUID, isABoardMember, currentUser } from "@/lib/server-utils";
 
 export default async function BoardIdPage({
   params,

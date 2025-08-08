@@ -3,8 +3,7 @@ import { eq } from "drizzle-orm";
 
 import { db } from "@/lib/db";
 import { boardMembersTable, boardsTable } from "@/lib/db/schema";
-import { currentUser } from "@/lib/auth/current-user";
-import { sleep } from "@/lib/utils";
+import { currentUser, sleep } from "@/lib/server-utils";
 
 export async function POST(req: Request) {
   try {

@@ -1,10 +1,9 @@
 import { NextResponse } from "next/server";
 import { eq } from "drizzle-orm";
 
-import { currentUser } from "@/lib/auth/current-user";
 import { db } from "@/lib/db";
 import { boardsTable } from "@/lib/db/schema";
-import { isABoardMember, sleep } from "@/lib/server-utils";
+import { isABoardMember, sleep, currentUser } from "@/lib/server-utils";
 
 export async function PATCH(
   req: Request,
