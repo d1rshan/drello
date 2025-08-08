@@ -68,41 +68,43 @@ export function NavBoards() {
                 </Link>
               </SidebarMenuButton>
 
-              <DropdownMenu>
-                <DropdownMenuTrigger
-                  asChild
-                  onClick={(e) => {
-                    e.stopPropagation();
-                  }}
-                >
-                  <SidebarMenuAction
-                    showOnHover
-                    className="data-[state=open]:bg-accent rounded-sm"
+              {!isActive && (
+                <DropdownMenu>
+                  <DropdownMenuTrigger
+                    asChild
+                    onClick={(e) => {
+                      e.stopPropagation();
+                    }}
                   >
-                    <IconDots />
-                    <span className="sr-only">More</span>
-                  </SidebarMenuAction>
-                </DropdownMenuTrigger>
+                    <SidebarMenuAction
+                      showOnHover
+                      className="data-[state=open]:bg-accent rounded-sm"
+                    >
+                      <IconDots />
+                      <span className="sr-only">More</span>
+                    </SidebarMenuAction>
+                  </DropdownMenuTrigger>
 
-                <DropdownMenuContent
-                  className="w-24 rounded-lg"
-                  side={isMobile ? "bottom" : "right"}
-                  align={isMobile ? "end" : "start"}
-                >
-                  <DropdownMenuItem>
-                    <IconEdit />
-                    <span>Edit</span>
-                  </DropdownMenuItem>
-                  <DropdownMenuSeparator />
-                  <DropdownMenuItem
-                    variant="destructive"
-                    onClick={() => mutate(board.id)}
+                  <DropdownMenuContent
+                    className="w-24 rounded-lg"
+                    side={isMobile ? "bottom" : "right"}
+                    align={isMobile ? "end" : "start"}
                   >
-                    <IconTrash />
-                    <span>Delete</span>
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
+                    <DropdownMenuItem>
+                      <IconEdit />
+                      <span>Edit</span>
+                    </DropdownMenuItem>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem
+                      variant="destructive"
+                      onClick={() => mutate(board.id)}
+                    >
+                      <IconTrash />
+                      <span>Delete</span>
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              )}
             </SidebarMenuItem>
           );
         })}

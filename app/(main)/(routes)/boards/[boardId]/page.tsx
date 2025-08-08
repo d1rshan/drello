@@ -1,10 +1,7 @@
-import { and, eq } from "drizzle-orm";
 import { redirect } from "next/navigation";
 
 import { currentUser } from "@/lib/auth/current-user";
-import { db } from "@/lib/db";
-import { boardMembersTable } from "@/lib/db/schema";
-import { isUUID } from "@/lib/utils";
+import { isUUID, isABoardMember } from "@/lib/server-utils";
 
 export default async function BoardIdPage({
   params,
@@ -23,19 +20,11 @@ export default async function BoardIdPage({
     return redirect("/sign-in");
   }
 
-  const [isABoardMember] = await db
-    .select()
-    .from(boardMembersTable)
-    .where(
-      and(
-        eq(boardMembersTable.userId, user.id),
-        eq(boardMembersTable.boardId, boardId)
-      )
-    );
+  const isMember = await isABoardMember(user.id, boardId);
 
-  if (!isABoardMember) {
+  if (!isMember) {
     return redirect("/dashboard");
   }
 
-  return <div>{isABoardMember.role}</div>;
+  return <div>{isMember.role}</div>;
 }

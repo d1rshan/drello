@@ -1,10 +1,9 @@
 import { NextResponse } from "next/server";
+import { eq } from "drizzle-orm";
 
 import { db } from "@/lib/db";
 import { boardMembersTable, boardsTable } from "@/lib/db/schema";
 import { currentUser } from "@/lib/auth/current-user";
-import { eq } from "drizzle-orm";
-import { title } from "process";
 import { sleep } from "@/lib/utils";
 
 export async function POST(req: Request) {

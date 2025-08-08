@@ -1,10 +1,10 @@
 import { NextResponse } from "next/server";
-import { and, eq } from "drizzle-orm";
+import { eq } from "drizzle-orm";
 
 import { currentUser } from "@/lib/auth/current-user";
 import { db } from "@/lib/db";
-import { boardMembersTable, boardsTable } from "@/lib/db/schema";
-import { sleep } from "@/lib/utils";
+import { boardsTable } from "@/lib/db/schema";
+import { isABoardMember, sleep } from "@/lib/server-utils";
 
 export async function PATCH(
   req: Request,
@@ -24,17 +24,9 @@ export async function PATCH(
       return new NextResponse("Board Title is Required", { status: 400 });
     }
 
-    const [boardMember] = await db
-      .select()
-      .from(boardMembersTable)
-      .where(
-        and(
-          eq(boardMembersTable.userId, user.id),
-          eq(boardMembersTable.boardId, p.boardId)
-        )
-      );
+    const isMember = await isABoardMember(user.id, p.boardId);
 
-    if (!boardMember || boardMember.role !== "ADMIN") {
+    if (!isMember || isMember.role !== "ADMIN") {
       return new NextResponse("Not Authorized", { status: 401 });
     }
 
@@ -66,17 +58,9 @@ export async function DELETE(
       return new NextResponse("Not Authorized", { status: 401 });
     }
 
-    const [boardMember] = await db
-      .select()
-      .from(boardMembersTable)
-      .where(
-        and(
-          eq(boardMembersTable.userId, user.id),
-          eq(boardMembersTable.boardId, p.boardId)
-        )
-      );
+    const isMember = await isABoardMember(user.id, p.boardId);
 
-    if (!boardMember || boardMember.role !== "ADMIN") {
+    if (!isMember || isMember.role !== "ADMIN") {
       return new NextResponse("Not Authorized", { status: 401 });
     }
 
