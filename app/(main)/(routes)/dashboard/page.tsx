@@ -1,6 +1,6 @@
 import { redirect } from "next/navigation";
 
-import { BoardCards } from "@/components/board-cards";
+import { BoardCards } from "@/components/dashboard/board-cards";
 import { currentUser } from "@/lib/server-utils";
 
 export default async function DashboardPage() {

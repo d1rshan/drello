@@ -1,11 +1,12 @@
-import { cn } from "@/lib/utils";
-import { Card, getDraggableStyle } from "./kanban-board";
-import { Draggable, Droppable } from "@hello-pangea/dnd";
-import { useEffect, useRef, useState } from "react";
-import { Button } from "../ui/button";
+import { useEffect, useRef, useState, memo } from "react";
 import { Plus, X } from "lucide-react";
-import { Textarea } from "../ui/textarea";
-// import { getDraggableStyle } from "./kanban-board";
+import { Draggable, Droppable } from "@hello-pangea/dnd";
+
+import { cn } from "@/lib/utils";
+import { Button } from "@/components/ui/button";
+import { Textarea } from "@/components/ui/textarea";
+
+import { Card, getDraggableStyle } from "./kanban-board";
 
 export function ListCards({
   listId = "list-0",
@@ -102,7 +103,8 @@ export function ListCards({
                         <div
                           ref={dragProvided.innerRef}
                           {...dragProvided.draggableProps}
-                          {...dragProvided.dragHandleProps}
+                          {...(dragProvided?.dragHandleProps ??
+                            dragProvided.dragHandleProps)}
                           style={getDraggableStyle(
                             dragProvided.draggableProps.style,
                             dragSnapshot

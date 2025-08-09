@@ -1,25 +1,46 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
+import { Plus, X } from "lucide-react";
+
 import {
   DragDropContext,
   Draggable,
   Droppable,
   type DropResult,
 } from "@hello-pangea/dnd";
+import { useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
-import { Plus, X, GripVertical, MoreHorizontal } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { ListHeader } from "./list-header";
 import { ListCards } from "./list-cards";
+import { BoardData } from "@/types";
+import { useCreateList } from "@/hooks/lists/use-create-list";
+import { useRenameList } from "@/hooks/lists/use-rename-list";
+import { useCreateCard } from "@/hooks/cards/use-create-card";
+import { useRenameCard } from "@/hooks/cards/use-rename-card";
+import { useMoveList } from "@/hooks/lists/use-move-list";
+import { useMoveCard } from "@/hooks/cards/use-move-card";
+import { useFetchBoard } from "@/hooks/boards/use-fetch-board";
 
-// Simple ID generator to avoid extra deps
-function uid(prefix = "id") {
-  return `${prefix}_${Math.random()
-    .toString(36)
-    .slice(2, 8)}_${Date.now().toString(36)}`;
+// -----------------------------
+// Utility: compute a position between neighbors (floating position technique)
+// - if inserting at 0 -> before first, return first/2
+// - if inserting at end -> last + 1
+// - else -> (before + after) / 2
+// -----------------------------
+function computePositionBetween(sortedPositions: number[], destIndex: number) {
+  if (sortedPositions.length === 0) return 1.0;
+  if (destIndex <= 0) {
+    return sortedPositions[0] / 2;
+  }
+  if (destIndex >= sortedPositions.length) {
+    return sortedPositions[sortedPositions.length - 1] + 1.0;
+  }
+  const before = sortedPositions[destIndex - 1];
+  const after = sortedPositions[destIndex];
+  return (before + after) / 2;
 }
 
 export function getDraggableStyle(
@@ -37,193 +58,154 @@ export function getDraggableStyle(
   return style;
 }
 
-export type Card = {
-  id: string;
-  title: string;
-  description?: string;
-};
-
-export type List = {
-  id: string;
-  title: string;
-  cardIds: string[];
-};
-
-export type BoardData = {
-  lists: Record<string, List>;
-  cards: Record<string, Card>;
-  listOrder: string[];
-};
-
-const MOCK_DATA: BoardData = {
-  lists: {
-    "list-1": {
-      id: "list-1",
-      title: "To do",
-      cardIds: ["card-1", "card-2", "card-3"],
-    },
-    "list-2": {
-      id: "list-2",
-      title: "In progress",
-      cardIds: ["card-4", "card-5"],
-    },
-    "list-3": { id: "list-3", title: "Done", cardIds: ["card-6"] },
-  },
-  cards: {
-    "card-1": { id: "card-1", title: "Design login screen" },
-    "card-2": { id: "card-2", title: "Set up CI workflow" },
-    "card-3": { id: "card-3", title: "Write README" },
-    "card-4": { id: "card-4", title: "Build auth provider" },
-    "card-5": { id: "card-5", title: "Integrate payment" },
-    "card-6": { id: "card-6", title: "Ship v0.1.0" },
-  },
-  listOrder: ["list-1", "list-2", "list-3"],
-};
-
-const STORAGE_KEY = "v0_trello_board_mock";
-
+// -----------------------------
+// Main KanbanBoard component (UI unchanged — adapted data layer)
+// -----------------------------
 export default function KanbanBoard({
+  boardId,
   initialData,
-}: { initialData?: BoardData } = {}) {
-  const [data, setData] = useState<BoardData>(() => {
-    if (typeof window !== "undefined") {
-      const saved = window.localStorage.getItem(STORAGE_KEY);
-      if (saved) {
-        try {
-          return JSON.parse(saved) as BoardData;
-        } catch {
-          // fall through
-        }
-      }
-    }
-    return initialData ?? structuredClone(MOCK_DATA);
-  });
+}: {
+  boardId: string;
+  initialData?: BoardData;
+}) {
+  const queryClient = useQueryClient();
 
+  const { data: serverData, isLoading } = useFetchBoard({ boardId });
+
+  // Local UI state (same as before)
   const [addingList, setAddingList] = useState(false);
   const [newListTitle, setNewListTitle] = useState("");
 
-  useEffect(() => {
-    if (typeof window !== "undefined") {
-      window.localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
-    }
-  }, [data]);
+  // -----------------------------
+  // Mutations with optimistic updates
+  // -----------------------------
+  const createListMutation = useCreateList({ boardId });
 
+  const renameListMutation = useRenameList({ boardId });
+
+  const createCardMutation = useCreateCard({ boardId });
+
+  const renameCardMutation = useRenameCard({ boardId });
+
+  // Move list (update list.position)
+  const moveListMutation = useMoveList({ boardId });
+  // Move card (update card.position and maybe card.listId)
+  const moveCardMutation = useMoveCard({ boardId });
+  // -----------------------------
+  // Derived memo: lists as array (same as original)
+  // -----------------------------
+  const data = queryClient.getQueryData<BoardData>(["board", boardId]) ??
+    (serverData as BoardData) ?? { lists: {}, cards: {}, listOrder: [] };
   const lists = useMemo(
     () => data.listOrder.map((id) => data.lists[id]),
     [data]
   );
 
-  const addList = useCallback((title: string) => {
-    if (!title.trim()) return;
-    const id = uid("list");
-    setData((prev) => {
-      const next: BoardData = {
-        ...prev,
-        lists: {
-          ...prev.lists,
-          [id]: { id, title: title.trim(), cardIds: [] },
-        },
-        listOrder: [...prev.listOrder, id],
-      };
-      return next;
-    });
-  }, []);
+  // -----------------------------
+  // Add / rename wrappers (called from UI)
+  // -----------------------------
+  const addList = useCallback(
+    (title: string) => {
+      if (!title.trim()) return;
+      // compute position: append at end -> max position + 1
+      const positions = Object.values(data.lists)
+        .map((l) => l.position)
+        .sort((a, b) => a - b);
+      const pos = positions.length
+        ? positions[positions.length - 1] + 1.0
+        : 1.0;
+      createListMutation.mutate({ title: title.trim(), position: pos });
+    },
+    [data, createListMutation]
+  );
 
-  const addCard = useCallback((listId: string, title: string) => {
-    if (!title.trim()) return;
-    const id = uid("card");
-    setData((prev) => {
-      const next: BoardData = {
-        ...prev,
-        cards: { ...prev.cards, [id]: { id, title: title.trim() } },
-        lists: {
-          ...prev.lists,
-          [listId]: {
-            ...prev.lists[listId],
-            cardIds: [...prev.lists[listId].cardIds, id],
-          },
-        },
-      };
-      return next;
-    });
-  }, []);
+  const renameList = useCallback(
+    (listId: string, title: string) => {
+      renameListMutation.mutate({ listId, title });
+    },
+    [renameListMutation]
+  );
 
-  const renameList = useCallback((listId: string, title: string) => {
-    setData((prev) => ({
-      ...prev,
-      lists: {
-        ...prev.lists,
-        [listId]: {
-          ...prev.lists[listId],
-          title: title || prev.lists[listId].title,
-        },
-      },
-    }));
-  }, []);
+  const addCard = useCallback(
+    (listId: string, title: string) => {
+      if (!title.trim()) return;
+      const cardPositions =
+        data.lists[listId]?.cardIds
+          .map((cid) => data.cards[cid]?.position ?? 0)
+          .sort((a, b) => a - b) ?? [];
+      const pos = cardPositions.length
+        ? cardPositions[cardPositions.length - 1] + 1.0
+        : 1.0;
+      createCardMutation.mutate({ listId, title: title.trim(), position: pos });
+    },
+    [data, createCardMutation]
+  );
 
-  const renameCard = useCallback((cardId: string, title: string) => {
-    setData((prev) => ({
-      ...prev,
-      cards: { ...prev.cards, [cardId]: { ...prev.cards[cardId], title } },
-    }));
-  }, []);
+  const renameCard = useCallback(
+    (cardId: string, title: string) => {
+      renameCardMutation.mutate({ cardId, title });
+    },
+    [renameCardMutation]
+  );
 
+  // -----------------------------
+  // Drag end uses computePositionBetween on neighbor positions
+  // -----------------------------
   const onDragEnd = useCallback(
     (result: DropResult) => {
       const { destination, source, draggableId, type } = result;
-
       if (!destination) return;
-
+      // no-op if same place
       if (
         destination.droppableId === source.droppableId &&
         destination.index === source.index
-      ) {
+      )
+        return;
+
+      // Move lists (type COLUMN in your original UI; keep same naming as original ui)
+      if (type === "COLUMN" || type === "list") {
+        // get current ordered lists and their positions
+        const orderedLists = data.listOrder.map((id) => data.lists[id]);
+        // destination index
+        const destIndex = destination.index;
+        const positions = orderedLists
+          .map((l) => l.position)
+          .sort((a, b) => a - b);
+        const newPos = computePositionBetween(positions, destIndex);
+        moveListMutation.mutate({ listId: draggableId, position: newPos });
         return;
       }
 
-      if (type === "COLUMN") {
-        const newOrder = Array.from(data.listOrder);
-        newOrder.splice(source.index, 1);
-        newOrder.splice(destination.index, 0, draggableId);
-        setData((prev) => ({ ...prev, listOrder: newOrder }));
-        return;
-      }
+      // Move cards (type CARD)
+      const sourceList = data.lists[source.droppableId];
+      const destList = data.lists[destination.droppableId];
+      if (!sourceList || !destList) return;
 
-      const startList = data.lists[source.droppableId];
-      const finishList = data.lists[destination.droppableId];
+      const movedCardId = draggableId;
+      // compute dest list card positions in order
+      const destCardPositions = destList.cardIds
+        .map((cid) => data.cards[cid]?.position ?? 0)
+        .sort((a, b) => a - b);
 
-      if (startList === finishList) {
-        const newCardIds = Array.from(startList.cardIds);
-        newCardIds.splice(source.index, 1);
-        newCardIds.splice(destination.index, 0, draggableId);
+      // when computing destination index relative to destList.cardIds:
+      const destIndex = destination.index;
 
-        const newList: List = { ...startList, cardIds: newCardIds };
-        setData((prev) => ({
-          ...prev,
-          lists: { ...prev.lists, [newList.id]: newList },
-        }));
-        return;
-      }
-
-      const startCardIds = Array.from(startList.cardIds);
-      startCardIds.splice(source.index, 1);
-      const newStart: List = { ...startList, cardIds: startCardIds };
-
-      const finishCardIds = Array.from(finishList.cardIds);
-      finishCardIds.splice(destination.index, 0, draggableId);
-      const newFinish: List = { ...finishList, cardIds: finishCardIds };
-
-      setData((prev) => ({
-        ...prev,
-        lists: {
-          ...prev.lists,
-          [newStart.id]: newStart,
-          [newFinish.id]: newFinish,
-        },
-      }));
+      const newPos = computePositionBetween(destCardPositions, destIndex);
+      moveCardMutation.mutate({
+        cardId: movedCardId,
+        position: newPos,
+        listId: destList.id,
+      });
     },
-    [data]
+    [data, moveListMutation, moveCardMutation]
   );
+
+  // -----------------------------
+  // UI: keep the exact same markup/structure as your original file
+  // -----------------------------
+  if (isLoading) {
+    return <div className="relative">Loading...</div>;
+  }
 
   return (
     <div className="relative">
@@ -253,7 +235,6 @@ export default function KanbanBoard({
                           dragSnapshot
                         )}
                         className={cn(
-                          // Fixed width, dynamic height, capped to board height
                           "flex max-h-[calc(100vh-140px)] flex-col w-[272px] min-w-[272px] max-w-[272px] basis-[272px] flex-shrink-0",
                           "rounded-md bg-zinc-100/70 p-2 shadow-sm border border-zinc-200 overflow-hidden",
                           "dark:bg-zinc-900/50 dark:border-zinc-800",
@@ -357,3 +338,10 @@ export default function KanbanBoard({
     </div>
   );
 }
+
+/* -----------------------------
+   ListHeader & ListCards
+   (kept functionally same as your original file)
+   - ListCards expects `cards` array where each card is the Card type above
+   - They call onAddCard(listId, title) and onRenameCard(cardId, title)
+------------------------------*/

@@ -20,3 +20,9 @@ export const editBoard = async (boardId: string, title: string) => {
   const res = await axios.patch(`/api/boards/${boardId}`, { title });
   return res.data;
 };
+
+export async function fetchBoard(boardId: string) {
+  const res = await fetch(`/api/boards/${boardId}`);
+  if (!res.ok) throw new Error("Failed to fetch board");
+  return res.json(); // expected shape: { lists: List[], cards: Card[] }
+}
