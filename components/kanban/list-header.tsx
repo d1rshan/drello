@@ -39,7 +39,6 @@ export function ListHeader({
               onRename(val.trim() || title);
               setEditing(false);
             }}
-            required
             onKeyDown={(e) => {
               if (e.key === "Enter") {
                 onRename(val.trim() || title);
@@ -49,9 +48,8 @@ export function ListHeader({
                 setEditing(false);
               }
             }}
-            // Natural, unobtrusive size to match label
             className={cn(
-              "h-7 w-full bg-white dark:bg-zinc-900 rounded-sm",
+              "h-7 w-full bg-white dark:bg-zinc-900",
               "px-1 py-0 text-sm leading-none",
               "border border-zinc-300 dark:border-zinc-700",
               "focus-visible:ring-0 focus-visible:ring-offset-0"

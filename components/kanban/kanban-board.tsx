@@ -1,7 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
-
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   DragDropContext,
   Draggable,
@@ -10,11 +9,11 @@ import {
 } from "@hello-pangea/dnd";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Plus, X } from "lucide-react";
+import { Textarea } from "@/components/ui/textarea";
+import { Plus, X, GripVertical, MoreHorizontal } from "lucide-react";
 import { cn } from "@/lib/utils";
-
-import { ListCards } from "./list-cards";
 import { ListHeader } from "./list-header";
+import { ListCards } from "./list-cards";
 
 // Simple ID generator to avoid extra deps
 function uid(prefix = "id") {
@@ -28,9 +27,9 @@ export function getDraggableStyle(
   snapshot: { isDragging: boolean; isDropAnimating: boolean }
 ) {
   if (!style) return style;
-  // Make drop instant/snappy (near-zero duration), and keep smooth while dragging
   if (snapshot.isDropAnimating) {
-    return { ...style, transitionDuration: "0.005s" };
+    // Snap in place instantly on drop
+    return { ...style, transitionDuration: "0.001s" };
   }
   if (snapshot.isDragging) {
     return { ...style, willChange: "transform" };
@@ -50,7 +49,7 @@ export type List = {
   cardIds: string[];
 };
 
-type BoardData = {
+export type BoardData = {
   lists: Record<string, List>;
   cards: Record<string, Card>;
   listOrder: string[];
@@ -175,7 +174,6 @@ export default function KanbanBoard({
 
       if (!destination) return;
 
-      // No movement
       if (
         destination.droppableId === source.droppableId &&
         destination.index === source.index
@@ -183,7 +181,6 @@ export default function KanbanBoard({
         return;
       }
 
-      // Reorder columns
       if (type === "COLUMN") {
         const newOrder = Array.from(data.listOrder);
         newOrder.splice(source.index, 1);
@@ -192,11 +189,9 @@ export default function KanbanBoard({
         return;
       }
 
-      // Move cards
       const startList = data.lists[source.droppableId];
       const finishList = data.lists[destination.droppableId];
 
-      // Same list reorder
       if (startList === finishList) {
         const newCardIds = Array.from(startList.cardIds);
         newCardIds.splice(source.index, 1);
@@ -210,7 +205,6 @@ export default function KanbanBoard({
         return;
       }
 
-      // Moving across lists
       const startCardIds = Array.from(startList.cardIds);
       startCardIds.splice(source.index, 1);
       const newStart: List = { ...startList, cardIds: startCardIds };
@@ -237,50 +231,55 @@ export default function KanbanBoard({
         <Droppable droppableId="board" direction="horizontal" type="COLUMN">
           {(provided) => (
             <div
-              ref={provided.innerRef}
-              {...provided.droppableProps}
               className={cn(
                 // Board scroller: horizontal only
-                "board-scroll no-scrollbar flex h-[calc(100vh-140px)] gap-3 overflow-x-auto pb-6 pr-3"
+                "board-scroll no-scrollbar flex h-[calc(100vh-140px)] items-start gap-3 overflow-x-auto pb-6 pr-3"
               )}
             >
-              {lists.map((list, index) => (
-                <Draggable draggableId={list.id} index={index} key={list.id}>
-                  {(dragProvided, dragSnapshot) => (
-                    <div
-                      ref={dragProvided.innerRef}
-                      {...dragProvided.draggableProps}
-                      style={getDraggableStyle(
-                        dragProvided.draggableProps.style,
-                        dragSnapshot
-                      )}
-                      className={cn(
-                        // Fixed width and full height column
-                        "flex h-full min-h-0 flex-col w-[272px] min-w-[272px] max-w-[272px] basis-[272px] flex-shrink-0",
-                        // Visuals (neutral, no green)
-                        "rounded-md bg-zinc-100/70 p-2 shadow-sm border border-zinc-200 overflow-hidden",
-                        "dark:bg-zinc-900/50 dark:border-zinc-800",
-                        dragSnapshot.isDragging &&
-                          "shadow-lg border-black/40 dark:border-white/50"
-                      )}
-                    >
-                      <ListHeader
-                        title={list.title}
-                        onRename={(t) => renameList(list.id, t)}
-                        dragHandleProps={dragProvided.dragHandleProps}
-                      />
-                      <ListCards
-                        listId={list.id}
-                        cards={list.cardIds.map((cid) => data.cards[cid])}
-                        onAddCard={(t) => addCard(list.id, t)}
-                        onRenameCard={renameCard}
-                      />
-                    </div>
-                  )}
-                </Draggable>
-              ))}
+              {/* Column droppable */}
+              <div
+                ref={provided.innerRef}
+                {...provided.droppableProps}
+                className="flex items-start gap-3"
+              >
+                {lists.map((list, index) => (
+                  <Draggable draggableId={list.id} index={index} key={list.id}>
+                    {(dragProvided, dragSnapshot) => (
+                      <div
+                        ref={dragProvided.innerRef}
+                        {...dragProvided.draggableProps}
+                        style={getDraggableStyle(
+                          dragProvided.draggableProps.style,
+                          dragSnapshot
+                        )}
+                        className={cn(
+                          // Fixed width, dynamic height, capped to board height
+                          "flex max-h-[calc(100vh-140px)] flex-col w-[272px] min-w-[272px] max-w-[272px] basis-[272px] flex-shrink-0",
+                          "rounded-md bg-zinc-100/70 p-2 shadow-sm border border-zinc-200 overflow-hidden",
+                          "dark:bg-zinc-900/50 dark:border-zinc-800",
+                          dragSnapshot.isDragging &&
+                            "shadow-lg border-black/40 dark:border-white/50"
+                        )}
+                      >
+                        <ListHeader
+                          title={list.title}
+                          onRename={(t) => renameList(list.id, t)}
+                          dragHandleProps={dragProvided.dragHandleProps}
+                        />
+                        <ListCards
+                          listId={list.id}
+                          cards={list.cardIds.map((cid) => data.cards[cid])}
+                          onAddCard={(t) => addCard(list.id, t)}
+                          onRenameCard={renameCard}
+                        />
+                      </div>
+                    )}
+                  </Draggable>
+                ))}
+                {provided.placeholder}
+              </div>
 
-              {/* Add list composer */}
+              {/* Add list composer OUTSIDE droppable so it stays fixed at the end */}
               <div className="w-[272px] flex-shrink-0">
                 {addingList ? (
                   <div className="rounded-md bg-zinc-100/70 p-2 ring-1 ring-zinc-200 dark:bg-zinc-900/50 dark:ring-zinc-800">
@@ -310,7 +309,6 @@ export default function KanbanBoard({
                           setNewListTitle("");
                           setAddingList(false);
                         }}
-                        // Black in light, White in dark
                         className="bg-black text-white hover:bg-black/90 dark:bg-white dark:text-black dark:hover:bg-white/90"
                       >
                         Add list
@@ -339,8 +337,6 @@ export default function KanbanBoard({
                   </button>
                 )}
               </div>
-
-              {provided.placeholder}
             </div>
           )}
         </Droppable>
@@ -348,13 +344,12 @@ export default function KanbanBoard({
 
       {/* Scoped styles */}
       <style jsx global>{`
-        /* Hide scrollbars for elements using .no-scrollbar */
         .no-scrollbar {
-          -ms-overflow-style: none; /* IE/Edge */
-          scrollbar-width: none; /* Firefox */
+          -ms-overflow-style: none;
+          scrollbar-width: none;
         }
         .no-scrollbar::-webkit-scrollbar {
-          display: none; /* Safari/Chrome */
+          display: none;
           width: 0;
           height: 0;
         }
