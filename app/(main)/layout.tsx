@@ -4,12 +4,12 @@ import { dehydrate, HydrationBoundary } from "@tanstack/react-query";
 
 import { ModalProvider } from "@/components/providers/modal-provider";
 import { AppSidebar } from "@/components/sidebar/app-sidebar";
-import { SiteHeader } from "@/components/sidebar/site-header";
 import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
 import { currentUser } from "@/lib/server-utils";
 import { db } from "@/lib/db";
 import { boardMembersTable, boardsTable } from "@/lib/db/schema";
 import { getQueryClient } from "@/lib/utils";
+import { SiteHeader } from "@/components/sidebar/site-header";
 
 export default async function MainLayout({
   children,
