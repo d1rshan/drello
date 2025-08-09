@@ -1,10 +1,12 @@
+import { useEffect, useRef, useState } from "react";
+import { Draggable, Droppable } from "@hello-pangea/dnd";
+import { Plus, X } from "lucide-react";
+
 import { cn } from "@/lib/utils";
 import { Card } from "@/types";
-import { Draggable, Droppable } from "@hello-pangea/dnd";
-import { useEffect, useRef, useState } from "react";
-import { Button } from "../ui/button";
-import { Textarea } from "../ui/textarea";
-import { Plus, X } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Textarea } from "@/components/ui/textarea";
+
 import { getDraggableStyle } from "./kanban-board";
 
 export function ListCards({
@@ -163,52 +165,53 @@ export function ListCards({
 
                 {/* Placeholder stays with cards so it affects drop position; source list shrinks when not dragging over */}
                 {showPlaceholder && provided.placeholder}
+                {adding && (
+                  <div className="rounded-md bg-white p-2 ring-1 ring-zinc-200 dark:bg-zinc-900 dark:ring-zinc-800">
+                    <Textarea
+                      value={text}
+                      autoFocus
+                      onChange={(e) => setText(e.target.value)}
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter" && !e.shiftKey) {
+                          e.preventDefault();
+                          handleConfirmAdd();
+                        } else if (e.key === "Escape") {
+                          setAdding(false);
+                          setText("");
+                        }
+                      }}
+                      placeholder="Enter a title for this card..."
+                      className="mb-2 min-h-[64px] resize-none bg-white dark:bg-zinc-900"
+                      aria-label="New card title"
+                    />
+                    <div className="flex items-center gap-2">
+                      <Button
+                        size="sm"
+                        onClick={handleConfirmAdd}
+                        className="bg-black text-white hover:bg-black/90 dark:bg-white dark:text-black dark:hover:bg-white/90"
+                      >
+                        Add card
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        aria-label="Cancel add card"
+                        onClick={() => {
+                          setAdding(false);
+                          setText("");
+                        }}
+                      >
+                        <X className="h-5 w-5" />
+                      </Button>
+                    </div>
+                  </div>
+                )}
               </div>
             </div>
 
             {/* Fixed footer: Add composer/button is always visible and not scrollable */}
             <div className="mt-2">
-              {adding ? (
-                <div className="rounded-md bg-white p-2 ring-1 ring-zinc-200 dark:bg-zinc-900 dark:ring-zinc-800">
-                  <Textarea
-                    value={text}
-                    autoFocus
-                    onChange={(e) => setText(e.target.value)}
-                    onKeyDown={(e) => {
-                      if (e.key === "Enter" && !e.shiftKey) {
-                        e.preventDefault();
-                        handleConfirmAdd();
-                      } else if (e.key === "Escape") {
-                        setAdding(false);
-                        setText("");
-                      }
-                    }}
-                    placeholder="Enter a title for this card..."
-                    className="mb-2 min-h-[64px] resize-none bg-white dark:bg-zinc-900"
-                    aria-label="New card title"
-                  />
-                  <div className="flex items-center gap-2">
-                    <Button
-                      size="sm"
-                      onClick={handleConfirmAdd}
-                      className="bg-black text-white hover:bg-black/90 dark:bg-white dark:text-black dark:hover:bg-white/90"
-                    >
-                      Add card
-                    </Button>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      aria-label="Cancel add card"
-                      onClick={() => {
-                        setAdding(false);
-                        setText("");
-                      }}
-                    >
-                      <X className="h-5 w-5" />
-                    </Button>
-                  </div>
-                </div>
-              ) : (
+              {!adding && (
                 <button
                   onClick={() => {
                     setEditingId(null);

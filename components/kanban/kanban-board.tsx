@@ -7,14 +7,15 @@ import {
   Droppable,
   type DropResult,
 } from "@hello-pangea/dnd";
+import { Plus, X } from "lucide-react";
+
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
-import { Plus, X, GripVertical, MoreHorizontal } from "lucide-react";
+import { BoardData, List } from "@/types";
 import { cn } from "@/lib/utils";
+
 import { ListHeader } from "./list-header";
 import { ListCards } from "./list-cards";
-import { Card, BoardData, List } from "@/types";
 
 // Simple ID generator to avoid extra deps
 function uid(prefix = "id") {
@@ -247,7 +248,7 @@ export default function KanbanBoard({
                       >
                         <ListHeader
                           title={list.title}
-                          onRename={(t) => renameList(list.id, t)}
+                          onRename={(t: any) => renameList(list.id, t)}
                           dragHandleProps={dragProvided.dragHandleProps}
                         />
                         <ListCards
