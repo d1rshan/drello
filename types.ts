@@ -7,17 +7,18 @@ export type Board = {
 export type Card = {
   id: string;
   title: string;
-  description?: string;
+  position: number;
+  listId: string;
 };
 
 export type List = {
   id: string;
   title: string;
-  cardIds: string[];
+  position: number;
+  boardId: string;
 };
 
 export type BoardData = {
-  lists: Record<string, List>;
-  cards: Record<string, Card>;
-  listOrder: string[];
+  lists: List[];
+  cards: Card[];
 };

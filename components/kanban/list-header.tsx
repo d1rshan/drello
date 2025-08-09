@@ -49,7 +49,7 @@ export function ListHeader({
               }
             }}
             className={cn(
-              "h-7 w-full bg-white dark:bg-zinc-900",
+              "h-7 w-full bg-white dark:bg-zinc-900 rounded-sm",
               "px-1 py-0 text-sm leading-none",
               "border border-zinc-300 dark:border-zinc-700",
               "focus-visible:ring-0 focus-visible:ring-offset-0"

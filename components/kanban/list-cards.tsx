@@ -7,7 +7,20 @@ import { Card } from "@/types";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 
-import { getDraggableStyle } from "./kanban-board";
+export function getDraggableStyle(
+  style: any,
+  snapshot: { isDragging: boolean; isDropAnimating: boolean }
+) {
+  if (!style) return style;
+  if (snapshot.isDropAnimating) {
+    // Snap in place instantly on drop
+    return { ...style, transitionDuration: "0.001s" };
+  }
+  if (snapshot.isDragging) {
+    return { ...style, willChange: "transform" };
+  }
+  return style;
+}
 
 export function ListCards({
   listId = "list-0",
