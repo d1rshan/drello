@@ -1,5 +1,4 @@
 import {
-  integer,
   pgTable,
   varchar,
   uuid,
@@ -9,6 +8,7 @@ import {
   timestamp,
   text,
   boolean,
+  doublePrecision,
 } from "drizzle-orm/pg-core";
 
 // export const usersTable = pgTable("users", {
@@ -95,7 +95,7 @@ export const listsTable = pgTable(
   {
     id: uuid("id").primaryKey().defaultRandom(),
     title: varchar("title", { length: 255 }).notNull(),
-    position: integer("position").notNull(),
+    position: doublePrecision("position").notNull(),
     boardId: uuid("board_id").references(() => boardsTable.id, {
       onDelete: "cascade",
     }),
@@ -109,7 +109,7 @@ export const cardsTable = pgTable(
   {
     id: uuid("id").primaryKey().defaultRandom(),
     title: varchar("title", { length: 255 }).notNull(),
-    position: integer("position").notNull(),
+    position: doublePrecision("position").notNull(),
     listId: uuid("list_id").references(() => listsTable.id, {
       onDelete: "cascade",
     }),
