@@ -1,9 +1,8 @@
-import { useEffect, useState } from "react";
 import { GripVertical, MoreHorizontal } from "lucide-react";
-
-import { Input } from "@/components/ui/input";
+import { useEffect, useState } from "react";
+import { Input } from "../ui/input";
+import { Button } from "../ui/button";
 import { cn } from "@/lib/utils";
-import { Button } from "@/components/ui/button";
 
 export function ListHeader({
   title = "List",
