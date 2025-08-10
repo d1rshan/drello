@@ -3,7 +3,7 @@ import { headers } from "next/headers";
 
 import { db } from "@/lib/db";
 import { boardMembersTable } from "@/lib/db/schema";
-import { auth } from "@/lib/auth/auth";
+import { auth } from "@/lib/better-auth/auth";
 
 export function isUUID(value: string): boolean {
   const uuidRegex =

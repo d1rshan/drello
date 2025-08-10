@@ -2,7 +2,7 @@
 
 import { APIError } from "better-auth/api";
 
-import { auth } from "@/lib/auth/auth";
+import { auth } from "@/lib/better-auth/auth";
 
 interface signInProps {
   email: string;

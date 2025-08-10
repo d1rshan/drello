@@ -1,5 +1,10 @@
 import axios from "axios";
 
+// these are fetchers for tanstack query, and we have to throw errors for tanstack query to know
+// that there is an error but when we use axios, it automatically throws an error
+// only if we want to customize the error message or smth than we make an make an resuable util
+// to send normalized error which will be called in catch.
+
 export const getBoards = async () => {
   const res = await axios.get("/api/boards");
   return res.data;
@@ -21,8 +26,7 @@ export const editBoard = async (boardId: string, title: string) => {
   return res.data;
 };
 
-export async function fetchBoard(boardId: string) {
-  const res = await fetch(`/api/boards/${boardId}`);
-  if (!res.ok) throw new Error("Failed to fetch board");
-  return res.json(); // expected shape: { lists: List[], cards: Card[] }
-}
+export const fetchBoard = async (boardId: string) => {
+  const res = await axios.get(`/api/boards/${boardId}`);
+  return res.data; // expected shape: { lists: List[], cards: Card[] }
+};

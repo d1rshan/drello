@@ -95,27 +95,22 @@ export async function GET(
     }
 
     // here we are fetching board {lists: [], cards: []}
-    // 1. Fetch all lists that belong to the given boardId
     const lists = await db
       .select()
       .from(listsTable)
       .where(eq(listsTable.boardId, p.boardId));
 
-    // If there are no lists, there can't be any cards, so we can return early.
     if (lists.length === 0) {
       return { lists: [], cards: [] };
     }
 
-    // 2. Extract the IDs from the lists we just fetched
     const listIds = lists.map((list) => list.id);
 
-    // 3. Fetch all cards where the listId is in our array of listIds
     const cards = await db
       .select()
       .from(cardsTable)
       .where(inArray(cardsTable.listId, listIds));
 
-    // 4. Return the data in the desired shape
     return NextResponse.json({ lists, cards });
   } catch (error) {
     console.log("[BOARD_ID_GET]", error);

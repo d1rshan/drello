@@ -2,7 +2,7 @@
 
 import React from "react";
 import { Button } from "../ui/button";
-import { authClient } from "@/lib/auth/auth-client";
+import { authClient } from "@/lib/better-auth/auth-client";
 
 export default function SignInSocial({
   provider,
