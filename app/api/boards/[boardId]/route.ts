@@ -101,7 +101,7 @@ export async function GET(
       .where(eq(listsTable.boardId, p.boardId));
 
     if (lists.length === 0) {
-      return { lists: [], cards: [] };
+      return NextResponse.json({ lists: [], cards: [] });
     }
 
     const listIds = lists.map((list) => list.id);
@@ -111,6 +111,8 @@ export async function GET(
       .from(cardsTable)
       .where(inArray(cardsTable.listId, listIds));
 
+    lists.sort((a, b) => a.position - b.position);
+    cards.sort((a, b) => a.position - b.position);
     return NextResponse.json({ lists, cards });
   } catch (error) {
     console.log("[BOARD_ID_GET]", error);

@@ -16,6 +16,8 @@ import { cn } from "@/lib/utils";
 
 import { ListHeader } from "./list-header";
 import { getDraggableStyle, ListCards } from "./list-cards";
+import { useBoard } from "@/features/boards/hooks/useBoard";
+import { useCreateList } from "@/features/lists/hooks/useCreateList";
 
 export const MOCK_DATA: BoardData = {
   lists: [
@@ -48,24 +50,28 @@ export const MOCK_DATA: BoardData = {
   ],
 };
 
-export default function KanbanBoard({
-  initialData,
-}: { initialData?: BoardData } = {}) {
+export default function KanbanBoard({ boardId }: { boardId: string }) {
   console.log("KanbanBoard");
-  const [data, setData] = useState<BoardData>(() => {
-    return MOCK_DATA;
-  });
+  const [data, setData] = useState<BoardData>({ lists: [], cards: [] });
+
+  const { data: boardData, isLoading } = useBoard(boardId);
+  const { mutateAsync: createList } = useCreateList(boardId);
 
   useEffect(() => {
-    console.log(data);
-  }, [data]);
+    if (boardData) {
+      console.log("this is fetched data", boardData);
+      setData(boardData);
+    }
+  }, [boardData]);
 
   const [addingList, setAddingList] = useState(false);
   const [newListTitle, setNewListTitle] = useState("");
   const listInputRef = useRef<HTMLInputElement | null>(null);
 
-  const addList = useCallback((title: string) => {
+  const addList = useCallback(async (title: string) => {
     if (!title.trim()) return;
+    console.log("HELLo");
+    await createList({ title, position: data.lists.length + 1 });
     setData((prev) => ({
       ...prev,
       lists: [
@@ -213,6 +219,9 @@ export default function KanbanBoard({
     });
   }, []);
 
+  if (isLoading) {
+    return <div> Loading...</div>;
+  }
   return (
     <div className="relative">
       <DragDropContext onDragEnd={onDragEnd}>

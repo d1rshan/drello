@@ -4,7 +4,7 @@ import { fetchBoard } from "../queries";
 
 export const useBoard = (boardId: string) => {
   return useQuery({
-    queryKey: ["board"],
+    queryKey: ["board", boardId],
     queryFn: () => fetchBoard(boardId),
   });
 };

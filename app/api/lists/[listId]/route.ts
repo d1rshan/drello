@@ -1,4 +1,4 @@
-import { eq } from "drizzle-orm";
+import { and, eq } from "drizzle-orm";
 import { NextResponse } from "next/server";
 
 import { db } from "@/lib/db";
@@ -27,7 +27,7 @@ export async function PATCH(
     const [list] = await db
       .update(listsTable)
       .set({ title, position })
-      .where(eq(listsTable.id, p.listId))
+      .where(and(eq(listsTable.id, p.listId), eq(listsTable.boardId, boardId)))
       .returning();
 
     return NextResponse.json(list);
@@ -56,11 +56,14 @@ export async function DELETE(
       return new NextResponse("Forbidden", { status: 403 });
     }
 
-    const list = await db.delete(listsTable).where(eq(listsTable.id, p.listId));
+    const [list] = await db
+      .delete(listsTable)
+      .where(and(eq(listsTable.id, p.listId), eq(listsTable.boardId, boardId)))
+      .returning();
 
     return NextResponse.json(list);
   } catch (error) {
-    console.log("[LIST_ID_PATCH]", error);
+    console.log("[LIST_ID_DELETE]", error);
     return new NextResponse("Internal Error", { status: 500 });
   }
 }

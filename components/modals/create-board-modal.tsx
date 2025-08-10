@@ -32,8 +32,7 @@ const formSchema = z.object({
 });
 
 export function CreateBoardModal() {
-  const router = useRouter();
-  const { isOpen, onClose, type } = useModal();
+  const { isOpen, type, onClose } = useModal();
 
   const isModalOpen = isOpen && type === "createBoard";
 
@@ -44,14 +43,11 @@ export function CreateBoardModal() {
     },
   });
 
-  const { mutateAsync, isPending, data } = useCreateBoard();
+  const { mutateAsync: createBoard, isPending } = useCreateBoard();
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
     form.reset();
-    await mutateAsync(values.title);
-    onClose();
-    toast.success("Board Created!");
-    router.push(`/boards/${data.id}`);
+    await createBoard(values.title);
   }
 
   return (
