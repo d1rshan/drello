@@ -7,28 +7,16 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-  AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
-import { Button } from "@/components/ui/button";
+import { useDeleteBoard } from "@/features/boards/hooks/useDeleteBoard";
 import { useModal } from "@/hooks/use-modal";
-import { deleteBoard } from "@/lib/queries/boards";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { toast } from "sonner";
 
 export function DeleteBoardModal() {
   const { isOpen, onClose, data, type } = useModal();
-  const queryClient = useQueryClient();
 
   const isModalOpen = isOpen && type === "deleteBoard";
 
-  const { mutate } = useMutation({
-    mutationFn: (boardId: string) => deleteBoard(boardId),
-    onSuccess: (data) => {
-      const { title } = data;
-      toast.success(`${title} Deleted!`);
-      queryClient.invalidateQueries({ queryKey: ["boards"] });
-    },
-  });
+  const { mutate } = useDeleteBoard();
 
   const { boardTitle, boardId } = data;
   return (

@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import {
   DragDropContext,
   Draggable,
@@ -45,45 +45,20 @@ export const MOCK_DATA: BoardData = {
       listId: "abc",
       position: 1,
     },
-    {
-      id: "card-2",
-      title: "Set up CI workflow",
-      listId: "2",
-      position: 1,
-    },
-    {
-      id: "card-3",
-      title: "Write README",
-      listId: "1",
-      position: 2,
-    },
-    {
-      id: "card-4",
-      title: "Build auth provider",
-      listId: "2",
-      position: 2,
-    },
-    {
-      id: "card-5",
-      title: "Integrate payment",
-      listId: "3",
-      position: 3,
-    },
-    {
-      id: "card-6",
-      title: "Ship v0.1.0",
-      listId: "4",
-      position: 4,
-    },
   ],
 };
 
 export default function KanbanBoard({
   initialData,
 }: { initialData?: BoardData } = {}) {
+  console.log("KanbanBoard");
   const [data, setData] = useState<BoardData>(() => {
-    return structuredClone(MOCK_DATA);
+    return MOCK_DATA;
   });
+
+  useEffect(() => {
+    console.log(data);
+  }, [data]);
 
   const [addingList, setAddingList] = useState(false);
   const [newListTitle, setNewListTitle] = useState("");
@@ -144,6 +119,7 @@ export default function KanbanBoard({
       ),
     }));
   }, []);
+
   const onDragEnd = useCallback((result: DropResult) => {
     const { destination, source, draggableId, type } = result;
 
@@ -151,14 +127,14 @@ export default function KanbanBoard({
 
     // If position didn't change, no update needed
     if (
-      destination.droppableId === source.droppableId &&
-      destination.index === source.index
+      destination.droppableId === source.droppableId && // no move
+      destination.index === source.index // no reorder
     ) {
       return;
     }
 
-    // === 1. Moving a LIST (COLUMN) ===
-    if (type === "COLUMN") {
+    // === 1. Moving a LIST ===
+    if (type === "LIST") {
       setData((prev) => {
         const newLists = Array.from(prev.lists);
         const [movedList] = newLists.splice(source.index, 1);
@@ -240,7 +216,7 @@ export default function KanbanBoard({
   return (
     <div className="relative">
       <DragDropContext onDragEnd={onDragEnd}>
-        <Droppable droppableId="board" direction="horizontal" type="COLUMN">
+        <Droppable droppableId="board" direction="horizontal" type="LIST">
           {(provided) => (
             <div className="board-scroll no-scrollbar flex h-[calc(100vh-140px)] items-start gap-3 overflow-x-auto pb-6 pr-3">
               <div
@@ -360,6 +336,7 @@ export default function KanbanBoard({
                   </button>
                 )}
               </div>
+              {provided.placeholder}
             </div>
           )}
         </Droppable>

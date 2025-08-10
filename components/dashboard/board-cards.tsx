@@ -1,10 +1,8 @@
 "use client";
 
-import { useQuery } from "@tanstack/react-query";
 import Link from "next/link";
 
 import { Card, CardAction, CardHeader, CardTitle } from "@/components/ui/card";
-import { getBoards } from "@/lib/queries/boards";
 import { Board } from "@/types";
 import {
   DropdownMenu,
@@ -15,15 +13,12 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { IconDotsVertical, IconEdit, IconTrash } from "@tabler/icons-react";
 import { useModal } from "@/hooks/use-modal";
+import { useBoards } from "@/features/boards/hooks/useBoards";
 
 export function BoardCards() {
   const { onOpen } = useModal();
 
-  const { data: boards } = useQuery({
-    queryKey: ["boards"],
-    queryFn: getBoards,
-    staleTime: 5000,
-  });
+  const { data: boards } = useBoards();
 
   return (
     <div className="*:data-[slot=card]:from-primary/5 *:data-[slot=card]:to-card dark:*:data-[slot=card]:bg-card grid grid-cols-1 gap-4 px-4 *:data-[slot=card]:bg-gradient-to-t *:data-[slot=card]:shadow-xs lg:px-6 @xl/main:grid-cols-2 @5xl/main:grid-cols-4">

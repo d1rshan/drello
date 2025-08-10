@@ -3,7 +3,6 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
 
@@ -26,7 +25,7 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
-import { createBoard } from "@/lib/queries/boards";
+import { useCreateBoard } from "@/features/boards/hooks/useCreateBoard";
 
 const formSchema = z.object({
   title: z.string().min(1, { error: "Board Title is Required" }).max(30),
@@ -35,7 +34,6 @@ const formSchema = z.object({
 export function CreateBoardModal() {
   const router = useRouter();
   const { isOpen, onClose, type } = useModal();
-  const queryClient = useQueryClient();
 
   const isModalOpen = isOpen && type === "createBoard";
 
@@ -46,19 +44,14 @@ export function CreateBoardModal() {
     },
   });
 
-  const { mutateAsync, isPending } = useMutation({
-    mutationFn: (title: string) => createBoard(title),
-    onSuccess: (data) => {
-      queryClient.invalidateQueries({ queryKey: ["boards"] });
-      toast.success("Board Created!");
-      router.push(`/boards/${data.id}`);
-    },
-  });
+  const { mutateAsync, isPending, data } = useCreateBoard();
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
-    await mutateAsync(values.title);
     form.reset();
+    await mutateAsync(values.title);
     onClose();
+    toast.success("Board Created!");
+    router.push(`/boards/${data.id}`);
   }
 
   return (

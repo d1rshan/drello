@@ -3,8 +3,6 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -25,8 +23,8 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
-import { editBoard } from "@/lib/queries/boards";
 import { useEffect } from "react";
+import { useEditBoard } from "@/features/boards/hooks/useEditBoard";
 
 const formSchema = z.object({
   title: z.string().min(1, { error: "Board Title is Required" }).max(30),
@@ -34,7 +32,6 @@ const formSchema = z.object({
 
 export function EditBoardModal() {
   const { isOpen, onClose, type, data } = useModal();
-  const queryClient = useQueryClient();
 
   const isModalOpen = isOpen && type === "editBoard";
 
@@ -52,21 +49,14 @@ export function EditBoardModal() {
     form.setValue("title", boardTitle);
   }, [boardTitle]);
 
-  const { mutateAsync, isPending } = useMutation({
-    mutationFn: ({ boardId, title }: { boardId: string; title: string }) =>
-      editBoard(boardId, title),
-    onSuccess: () => {
-      toast.success("Board Edited!");
-      queryClient.invalidateQueries({ queryKey: ["boards"] });
-    },
-  });
+  const { mutateAsync: editBoard, isPending } = useEditBoard();
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
     const { title } = values;
     if (!boardId) {
       return;
     }
-    await mutateAsync({ boardId, title });
+    await editBoard({ boardId, title });
     form.reset();
     onClose();
   }

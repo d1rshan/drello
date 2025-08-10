@@ -1,8 +1,7 @@
 "use client";
 
-import { IconDots, IconEdit, IconLayout, IconTrash } from "@tabler/icons-react";
+import { IconLayout } from "@tabler/icons-react";
 import { usePathname } from "next/navigation";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
 import {
   SidebarGroup,
@@ -11,18 +10,15 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
 } from "@/components/ui/sidebar";
-import { getBoards } from "@/lib/queries/boards";
 import { Board } from "@/types";
 import { cn } from "@/lib/utils";
 import Link from "next/link";
+import { useBoards } from "@/features/boards/hooks/useBoards";
 
 export function NavBoards() {
   const pathname = usePathname();
 
-  const { data: boards } = useQuery({
-    queryKey: ["boards"],
-    queryFn: getBoards,
-  });
+  const { data: boards } = useBoards();
 
   return (
     <SidebarGroup className="group-data-[collapsible=icon]:hidden">
