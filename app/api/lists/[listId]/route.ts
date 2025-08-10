@@ -30,6 +30,8 @@ export async function PATCH(
       .where(and(eq(listsTable.id, p.listId), eq(listsTable.boardId, boardId)))
       .returning();
 
+    console.log(list);
+
     return NextResponse.json(list);
   } catch (error) {
     console.log("[LIST_ID_PATCH]", error);

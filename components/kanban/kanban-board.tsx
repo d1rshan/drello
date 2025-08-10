@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useRef, useState } from "react";
 import {
   DragDropContext,
   Draggable,
@@ -11,216 +11,90 @@ import { Plus, X } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { BoardData } from "@/types";
+import { BoardData, List } from "@/types";
 import { cn } from "@/lib/utils";
 
 import { ListHeader } from "./list-header";
 import { getDraggableStyle, ListCards } from "./list-cards";
 import { useBoard } from "@/features/boards/hooks/useBoard";
 import { useCreateList } from "@/features/lists/hooks/useCreateList";
-
-export const MOCK_DATA: BoardData = {
-  lists: [
-    {
-      id: "abc",
-      title: "To do",
-      boardId: "1",
-      position: 1,
-    },
-    {
-      id: "def",
-      title: "To do",
-      boardId: "1",
-      position: 2,
-    },
-    {
-      id: "ghi",
-      title: "To do",
-      boardId: "1",
-      position: 2,
-    },
-  ],
-  cards: [
-    {
-      id: "card-1",
-      title: "Design login screen",
-      listId: "abc",
-      position: 1,
-    },
-  ],
-};
+import { useUpdateList } from "@/features/lists/hooks/useUpdateList";
 
 export default function KanbanBoard({ boardId }: { boardId: string }) {
-  console.log("KanbanBoard");
-  const [data, setData] = useState<BoardData>({ lists: [], cards: [] });
+  const { data, isLoading } = useBoard(boardId);
 
-  const { data: boardData, isLoading } = useBoard(boardId);
   const { mutateAsync: createList } = useCreateList(boardId);
+  const { mutateAsync: updateList } = useUpdateList(boardId);
 
-  useEffect(() => {
-    if (boardData) {
-      console.log("this is fetched data", boardData);
-      setData(boardData);
-    }
-  }, [boardData]);
+  const board = data as BoardData;
 
   const [addingList, setAddingList] = useState(false);
   const [newListTitle, setNewListTitle] = useState("");
   const listInputRef = useRef<HTMLInputElement | null>(null);
 
-  const addList = useCallback(async (title: string) => {
+  const addList = async (title: string) => {
     if (!title.trim()) return;
-    console.log("HELLo");
-    await createList({ title, position: data.lists.length + 1 });
-    setData((prev) => ({
-      ...prev,
-      lists: [
-        ...prev.lists,
-        {
-          id: Date.now().toString(),
-          boardId: "1",
-          position: prev.lists.length,
-          title,
-        },
-      ],
-    }));
-  }, []);
+    const maxPos = Math.max(0, ...data.lists.map((l: List) => l.position));
+    await createList({ title, position: maxPos + 1 });
+  };
 
   // === Add card ===
   const addCard = useCallback(
     (listId: string, title: string, position: number) => {
       if (!title.trim()) return;
-      setData((prev) => ({
-        ...prev,
-        cards: [
-          ...prev.cards,
-          {
-            id: Date.now().toString(),
-            listId,
-            title,
-            position,
-          },
-        ],
-      }));
     },
     []
   );
 
   // === Rename list ===
-  const renameList = useCallback((listId: string, title: string) => {
-    setData((prev) => ({
-      ...prev,
-      lists: prev.lists.map((list) =>
-        list.id === listId ? { ...list, title } : list
-      ),
-    }));
-  }, []);
+  const renameList = async (listId: string, title: string) => {
+    if (!title.trim()) return;
+    await updateList({ listId, title });
+  };
 
   // === Rename card ===
-  const renameCard = useCallback((cardId: string, title: string) => {
-    setData((prev) => ({
-      ...prev,
-      cards: prev.cards.map((card) =>
-        card.id === cardId ? { ...card, title } : card
-      ),
-    }));
-  }, []);
+  const renameCard = useCallback((cardId: string, title: string) => {}, []);
 
-  const onDragEnd = useCallback((result: DropResult) => {
-    const { destination, source, draggableId, type } = result;
-
+  const onDragEnd = async (result: DropResult) => {
+    const { destination, source, type } = result;
     if (!destination) return;
 
-    // If position didn't change, no update needed
+    // If nothing changed
     if (
-      destination.droppableId === source.droppableId && // no move
-      destination.index === source.index // no reorder
+      destination.droppableId === source.droppableId &&
+      destination.index === source.index
     ) {
       return;
     }
 
-    // === 1. Moving a LIST ===
+    // Moving a LIST
     if (type === "LIST") {
-      setData((prev) => {
-        const newLists = Array.from(prev.lists);
-        const [movedList] = newLists.splice(source.index, 1);
-        newLists.splice(destination.index, 0, movedList);
+      const lists = board.lists;
+      const movedList = lists[source.index];
 
-        // Update positions based on array order
-        const updatedLists = newLists.map((list, idx) => ({
-          ...list,
-          position: idx,
-        }));
+      let newPosition: number;
 
-        return { ...prev, lists: updatedLists };
+      if (destination.index === 0) {
+        // Move to start
+        newPosition = lists[0].position - 1;
+      } else if (destination.index === lists.length - 1) {
+        // Move to end
+        newPosition = lists[lists.length - 1].position + 1;
+      } else {
+        const before = lists[destination.index - 1];
+        const after = lists[destination.index];
+        newPosition = (before.position + after.position) / 2;
+      }
+      await updateList({
+        listId: movedList.id,
+        position: newPosition,
       });
       return;
     }
-
-    // === 2 & 3. Moving a CARD ===
-    setData((prev) => {
-      const startListId = source.droppableId;
-      const finishListId = destination.droppableId;
-
-      // Get all cards in start & finish lists
-      const startCards = prev.cards
-        .filter((c) => c.listId === startListId)
-        .sort((a, b) => a.position - b.position);
-
-      const finishCards =
-        startListId === finishListId
-          ? startCards
-          : prev.cards
-              .filter((c) => c.listId === finishListId)
-              .sort((a, b) => a.position - b.position);
-
-      // Find the moved card
-      const movedCardIndex = startCards.findIndex((c) => c.id === draggableId);
-      const [movedCard] = startCards.splice(movedCardIndex, 1);
-
-      if (startListId === finishListId) {
-        // === Moving within same list ===
-        startCards.splice(destination.index, 0, movedCard);
-        const updatedCards = prev.cards.map((card) => {
-          if (card.listId !== startListId) return card;
-          const idx = startCards.findIndex((c) => c.id === card.id);
-          return { ...card, position: idx };
-        });
-
-        return { ...prev, cards: updatedCards };
-      } else {
-        // === Moving to a different list ===
-        finishCards.splice(destination.index, 0, {
-          ...movedCard,
-          listId: finishListId,
-        });
-
-        const updatedCards = prev.cards.map((card) => {
-          if (card.id === movedCard.id) {
-            return {
-              ...card,
-              listId: finishListId,
-              position: destination.index,
-            };
-          }
-          if (card.listId === startListId) {
-            const idx = startCards.findIndex((c) => c.id === card.id);
-            return { ...card, position: idx };
-          }
-          if (card.listId === finishListId) {
-            const idx = finishCards.findIndex((c) => c.id === card.id);
-            return { ...card, position: idx };
-          }
-          return card;
-        });
-
-        return { ...prev, cards: updatedCards };
-      }
-    });
-  }, []);
+  };
 
   if (isLoading) {
-    return <div> Loading...</div>;
+    return <div>Loading...</div>;
   }
   return (
     <div className="relative">
@@ -233,11 +107,11 @@ export default function KanbanBoard({ boardId }: { boardId: string }) {
                 {...provided.droppableProps}
                 className="flex items-start gap-3"
               >
-                {data.lists
+                {board.lists
                   .slice()
                   .sort((a, b) => a.position - b.position)
                   .map((list, index) => {
-                    const listCards = data.cards
+                    const listCards = board.cards
                       .filter((c) => c.listId === list.id)
                       .sort((a, b) => a.position - b.position);
 

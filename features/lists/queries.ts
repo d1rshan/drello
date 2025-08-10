@@ -5,17 +5,24 @@ export async function createList(
   title: string,
   position: number
 ) {
-  const res = await axios.post(`/api/boards/${boardId}/lists`, {
+  const res = await axios.post(`/api/lists`, {
     title,
     position,
+    boardId,
   });
   return res.data;
 }
 
 export async function updateList(
   listId: string,
-  patch: Partial<{ title: string; position: number }>
+  boardId: string,
+  title?: string,
+  position?: number
 ) {
-  const res = await axios.patch(`/api/lists/${listId}`, { patch });
+  const res = await axios.patch(`/api/lists/${listId}`, {
+    boardId,
+    title,
+    position,
+  });
   return res.data;
 }
